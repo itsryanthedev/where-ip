@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { ExternalLink } from '@/components/external-link';
-import { APP_LINKS } from '@/constants/links';
+import { APP_LINK_IDS, APP_LINKS, providerLinkId } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
 import { radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -71,11 +71,13 @@ export function Privacy() {
                   <ExternalLink
                     compact
                     href={provider.privacyUrl}
+                    linkId={providerLinkId(provider.id, 'privacy')}
                     label="Privacy Policy"
                   />
                   <ExternalLink
                     compact
                     href={provider.termsUrl}
+                    linkId={providerLinkId(provider.id, 'terms')}
                     label="Terms of Use"
                   />
                 </View>
@@ -115,8 +117,16 @@ export function Privacy() {
             details in a public report.
           </PolicySection>
 
-          <ExternalLink href={APP_LINKS.issues} label="Open the issue tracker" />
-          <ExternalLink href={APP_LINKS.repository} label="Inspect the source code" />
+          <ExternalLink
+            href={APP_LINKS.issues}
+            linkId={APP_LINK_IDS.issues}
+            label="Open the issue tracker"
+          />
+          <ExternalLink
+            href={APP_LINKS.repository}
+            linkId={APP_LINK_IDS.repository}
+            label="Inspect the source code"
+          />
         </View>
       </ScrollView>
     </>

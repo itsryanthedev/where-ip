@@ -12,6 +12,7 @@ import { ExternalLink } from '@/components/external-link';
 import { InfoIcon } from '@/components/icons';
 import { RevealView } from '@/components/reveal-view';
 import { TactilePressable } from '@/components/tactile-pressable';
+import { providerLinkId } from '@/constants/links';
 import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -137,12 +138,19 @@ export function ProviderCard({
             <ExternalLink
               compact
               href={provider.privacyUrl}
+              linkId={providerLinkId(provider.id, 'privacy')}
               label="Privacy Policy"
             />
-            <ExternalLink compact href={provider.termsUrl} label="Terms of Use" />
+            <ExternalLink
+              compact
+              href={provider.termsUrl}
+              linkId={providerLinkId(provider.id, 'terms')}
+              label="Terms of Use"
+            />
             <ExternalLink
               compact
               href={provider.documentationUrl}
+              linkId={providerLinkId(provider.id, 'documentation')}
               label="API documentation"
             />
           </View>

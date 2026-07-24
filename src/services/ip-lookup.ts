@@ -9,6 +9,7 @@ import {
 } from '@/constants/providers';
 import { parseProviderResponse } from '@/services/provider-adapters';
 import type {
+  IpResult,
   LookupOutcome,
   ProviderCooldowns,
   ProviderId,
@@ -23,6 +24,11 @@ type LookupOptions = {
   preferredProvider: ProviderId;
   providerCooldowns?: ProviderCooldowns;
   fetchImplementation?: FetchImplementation;
+  /**
+   * When set (desktop bridge), each provider is resolved through this callback
+   * instead of renderer-side fetch + parse.
+   */
+  providerLookup?: (providerId: ProviderId) => Promise<IpResult>;
   now?: number;
   timeoutMs?: number;
 };
@@ -47,6 +53,7 @@ export async function lookupPublicIp({
   preferredProvider,
   providerCooldowns = {},
   fetchImplementation = expoFetch as FetchImplementation,
+  providerLookup,
   now = Date.now(),
   timeoutMs = PROVIDER_TIMEOUT_MS,
 }: LookupOptions): Promise<LookupOutcome> {
@@ -67,6 +74,23 @@ export async function lookupPublicIp({
 
   for (const provider of availableProviders) {
     attemptedProviders.push(provider.id);
+
+    if (providerLookup) {
+      try {
+        const result = await providerLookup(provider.id);
+        delete cooldowns[provider.id];
+        return {
+          result,
+          attemptedProviders,
+          providerCooldowns: cooldowns,
+        };
+      } catch {
+        cooldowns[provider.id] = now + FAILURE_RETRY_DELAY_MS;
+        failures.push(`${provider.name} could not be reached`);
+        continue;
+      }
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);
 

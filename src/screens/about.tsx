@@ -6,7 +6,7 @@ import { AppLogo } from '@/components/app-logo';
 import { ExternalLink } from '@/components/external-link';
 import { ProviderCard } from '@/components/provider-card';
 import { TactilePressable } from '@/components/tactile-pressable';
-import { APP_LINKS } from '@/constants/links';
+import { APP_LINK_IDS, APP_LINKS } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
 import {
   contentMaxWidth,
@@ -16,6 +16,7 @@ import {
 } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useWhereIp } from '@/providers/where-ip-provider';
+import { getAppVersion } from '@/services/desktop-bridge';
 
 export function About() {
   const colors = useAppColors();
@@ -109,10 +110,26 @@ export function About() {
               must use their own name and visual identity.
             </Text>
             <View style={styles.linkList}>
-              <ExternalLink href={APP_LINKS.repository} label="WhereIP source code" />
-              <ExternalLink href={APP_LINKS.license} label="Apache 2.0 license" />
-              <ExternalLink href={APP_LINKS.notice} label="Attribution notice" />
-              <ExternalLink href={APP_LINKS.issues} label="Report an issue" />
+              <ExternalLink
+                href={APP_LINKS.repository}
+                linkId={APP_LINK_IDS.repository}
+                label="WhereIP source code"
+              />
+              <ExternalLink
+                href={APP_LINKS.license}
+                linkId={APP_LINK_IDS.license}
+                label="Apache 2.0 license"
+              />
+              <ExternalLink
+                href={APP_LINKS.notice}
+                linkId={APP_LINK_IDS.notice}
+                label="Attribution notice"
+              />
+              <ExternalLink
+                href={APP_LINKS.issues}
+                linkId={APP_LINK_IDS.issues}
+                label="Report an issue"
+              />
             </View>
           </Section>
 
@@ -123,16 +140,23 @@ export function About() {
               exposed here.
             </Text>
             <View style={styles.linkList}>
-              <ExternalLink href={APP_LINKS.creator} label="Ryan the Dev on GitHub" />
+              <ExternalLink
+                href={APP_LINKS.creator}
+                linkId={APP_LINK_IDS.creator}
+                label="Ryan the Dev on GitHub"
+              />
               <ExternalLink
                 href={APP_LINKS.openSourceProjects}
+                linkId={APP_LINK_IDS.openSourceProjects}
                 label="Open-source projects"
               />
             </View>
           </Section>
 
           <Text style={[styles.version, { color: colors.textMuted }]}>
-            WhereIP {Constants.expoConfig?.version ?? '1.0.1'} · Apache-2.0
+            WhereIP{' '}
+            {getAppVersion(Constants.expoConfig?.version ?? '1.0.1')} ·
+            Apache-2.0
           </Text>
         </View>
       </ScrollView>

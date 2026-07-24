@@ -11,7 +11,7 @@ import { ActionButton } from '@/components/action-button';
 import { AppLogo } from '@/components/app-logo';
 import { ExternalLink } from '@/components/external-link';
 import { RevealView } from '@/components/reveal-view';
-import { APP_LINKS } from '@/constants/links';
+import { APP_LINK_IDS, APP_LINKS, providerLinkId } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
 import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -107,11 +107,13 @@ export function DisclosureDialog() {
                       <ExternalLink
                         compact
                         href={provider.privacyUrl}
+                        linkId={providerLinkId(provider.id, 'privacy')}
                         label="Privacy"
                       />
                       <ExternalLink
                         compact
                         href={provider.termsUrl}
+                        linkId={providerLinkId(provider.id, 'terms')}
                         label="Terms"
                       />
                     </View>
@@ -127,6 +129,7 @@ export function DisclosureDialog() {
                 />
                 <ExternalLink
                   href={APP_LINKS.repository}
+                  linkId={APP_LINK_IDS.repository}
                   label="View source on GitHub"
                 />
               </View>

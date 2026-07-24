@@ -17,6 +17,7 @@ import {
 } from '@/components/icons';
 import { RevealView } from '@/components/reveal-view';
 import { TactilePressable } from '@/components/tactile-pressable';
+import { providerLinkId } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
 import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -259,16 +260,19 @@ export function ProviderSelector({
             <ExternalLink
               compact
               href={selected.privacyUrl}
+              linkId={providerLinkId(selected.id, 'privacy')}
               label="Privacy Policy"
             />
             <ExternalLink
               compact
               href={selected.termsUrl}
+              linkId={providerLinkId(selected.id, 'terms')}
               label="Terms of Use"
             />
             <ExternalLink
               compact
               href={selected.documentationUrl}
+              linkId={providerLinkId(selected.id, 'documentation')}
               label="API documentation"
             />
           </View>

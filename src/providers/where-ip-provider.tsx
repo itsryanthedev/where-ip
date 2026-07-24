@@ -20,6 +20,7 @@ import {
   lookupPublicIp,
   LookupChainError,
 } from '@/services/ip-lookup';
+import { getDesktopBridge } from '@/services/desktop-bridge';
 import {
   loadPersistedState,
   saveCache,
@@ -132,9 +133,13 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         throw new Error('You appear to be offline. Your last result is still available.');
       }
 
+      const desktopBridge = getDesktopBridge();
       const outcome = await lookupPublicIp({
         preferredProvider: requestedProvider,
         providerCooldowns: currentCooldowns,
+        providerLookup: desktopBridge
+          ? (providerId) => desktopBridge.lookupPublicIp(providerId)
+          : undefined,
       });
 
       resultRef.current = outcome.result;

@@ -4,8 +4,9 @@
 /.eas/ @itsryanthedev
 /electron/ @itsryanthedev
 /.gitignore @itsryanthedev
-/app.json @itsryanthedev
+/app.config.ts @itsryanthedev
 /eas.json @itsryanthedev
+/electron-forge.config.cjs @itsryanthedev
 /package.json @itsryanthedev
 /pnpm-lock.yaml @itsryanthedev
 /SECURITY.md @itsryanthedev
