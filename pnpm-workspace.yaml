@@ -14,3 +14,6 @@ overrides:
   uuid@<11.1.1: 11.1.1
   # Keep browserslist's electron-to-chromium outside the 24h minimumReleaseAge window.
   electron-to-chromium: 1.5.394
+  # @electron/rebuild@3.x declares a git URL for @electron/node-gyp; force the
+  # published npm package so blockExoticSubdeps can allow Electron Forge.
+  '@electron/node-gyp': 10.2.0-electron.2

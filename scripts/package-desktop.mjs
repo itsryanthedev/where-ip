@@ -1,10 +1,10 @@
 /**
  * Unsigned desktop packaging for Phase 4 smoke tests.
  *
- * Uses the locally cached Electron zip + system `unzip` instead of
- * `@electron/packager`'s extract-zip path (unreliable on Node 26+). Electron
- * Forge remains deferred while it pulls exotic git subdeps blocked by pnpm
- * `blockExoticSubdeps`. Channel makers and signing belong to later phases.
+ * Primary path: cached Electron zip + system `unzip` (reliable across Node
+ * versions). Prefer `pnpm run electron:package:forge` when Forge packaging is
+ * needed; that works because pnpm overrides `@electron/node-gyp` to its npm
+ * package (see pnpm-workspace.yaml). Channel makers and signing are later.
  */
 
 import { spawnSync } from 'node:child_process';

@@ -26,6 +26,8 @@
     "react-native-web": "~0.21.0"
   },
   "devDependencies": {
+    "@electron-forge/cli": "7.8.1",
+    "@electron-forge/maker-zip": "7.8.1",
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "29.5.14",
     "@types/react": "~19.2.2",
@@ -56,11 +58,15 @@
     "export:desktop": "EXPO_WEB_BASE_URL=/ expo export --platform web --output-dir dist-desktop",
     "electron:start": "pnpm run export:desktop && electron electron/main/index.cjs",
     "electron:package": "pnpm run export:desktop && node ./scripts/package-desktop.mjs",
+    "electron:package:forge": "pnpm run export:desktop && electron-forge package",
     "electron:test": "node --test electron/tests/*.test.cjs",
     "verify": "pnpm run secrets:check && pnpm run lint && pnpm run typecheck && pnpm test && pnpm run export:web"
   },
   "private": false,
   "license": "Apache-2.0",
+  "config": {
+    "forge": "./electron-forge.config.cjs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/itsryanthedev/where-ip.git"
