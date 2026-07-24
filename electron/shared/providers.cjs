@@ -10,7 +10,7 @@ const PROVIDERS = Object.freeze({
   },
   freeipapi: {
     name: 'FreeIPAPI',
-    endpoint: 'https://freeipapi.com/api/json',
+    endpoint: 'https://free.freeipapi.com/api/json',
   },
   ipwhois: {
     name: 'ipwho.is',

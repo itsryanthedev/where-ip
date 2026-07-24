@@ -15,7 +15,7 @@ export const PROVIDERS: readonly ProviderDefinition[] = [
     id: 'freeipapi',
     name: 'FreeIPAPI',
     shortDescription: 'Alternative · broad location and ASN fields',
-    endpoint: 'https://freeipapi.com/api/json',
+    endpoint: 'https://free.freeipapi.com/api/json',
     documentationUrl: 'https://freeipapi.com/docs/api-reference/api-introduction',
     privacyUrl: 'https://freeipapi.com/privacy',
     termsUrl: 'https://freeipapi.com/terms',
