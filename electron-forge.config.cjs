@@ -21,6 +21,9 @@ module.exports = {
       if (!filePath) {
         return false;
       }
+      // @electron/packager passes app-root-relative paths with a leading `/`
+      // (see copy-filter.js). Keep dist-desktop out of the ASAR; it ships only
+      // via extraResource.
       if (
         filePath.startsWith('/src') ||
         filePath.startsWith('/assets') ||
@@ -30,6 +33,7 @@ module.exports = {
         filePath.startsWith('/.git') ||
         filePath.startsWith('/.expo') ||
         filePath.startsWith('/dist-pages') ||
+        filePath.startsWith('/dist-desktop') ||
         filePath.startsWith('/dist/') ||
         filePath.startsWith('/out') ||
         filePath.startsWith('/public') ||
