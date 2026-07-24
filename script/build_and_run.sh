@@ -3,6 +3,7 @@ set -euo pipefail
 
 MODE="${1:-start}"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+EXPO_DOCTOR_VERSION="1.20.1"
 
 cd "$ROOT_DIR"
 
@@ -42,9 +43,9 @@ resolve_expo_cmd() {
 
 run_doctor() {
   if [[ -f pnpm-lock.yaml ]] && command -v pnpm >/dev/null 2>&1; then
-    pnpm dlx expo-doctor
+    pnpm dlx "expo-doctor@${EXPO_DOCTOR_VERSION}"
   else
-    npx expo-doctor
+    npx --yes "expo-doctor@${EXPO_DOCTOR_VERSION}"
   fi
 }
 

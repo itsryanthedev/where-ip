@@ -26,31 +26,90 @@ export function inferIpVersion(ip: string): IpVersion | null {
 export function isUsablePublicIp(ip: string): boolean {
   const version = inferIpVersion(ip);
   if (version === 4) {
-    const [a, b] = ip.split('.').map(Number);
-    return !(
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      a >= 224
+    const address = ipv4ToNumber(ip);
+    return !NON_PUBLIC_IPV4_RANGES.some(([network, prefixLength]) =>
+      isIpv4InCidr(address, network, prefixLength),
     );
   }
 
   if (version === 6) {
-    const normalized = ip.toLowerCase();
-    const firstSection = Number.parseInt(normalized.split(':')[0] || '0', 16);
-    return !(
-      normalized === '::' ||
-      normalized === '::1' ||
-      (firstSection & 0xfe00) === 0xfc00 ||
-      (firstSection & 0xffc0) === 0xfe80 ||
-      (firstSection & 0xff00) === 0xff00
+    const address = ipv6ToBigInt(ip);
+    return (
+      isIpv6InCidr(address, ipv6ToBigInt('2000::'), 3) &&
+      !NON_PUBLIC_IPV6_RANGES.some(([network, prefixLength]) =>
+        isIpv6InCidr(address, ipv6ToBigInt(network), prefixLength),
+      )
     );
   }
 
   return false;
+}
+
+const NON_PUBLIC_IPV4_RANGES: readonly (readonly [string, number])[] = [
+  ['0.0.0.0', 8],
+  ['10.0.0.0', 8],
+  ['100.64.0.0', 10],
+  ['127.0.0.0', 8],
+  ['169.254.0.0', 16],
+  ['172.16.0.0', 12],
+  ['192.0.0.0', 24],
+  ['192.0.2.0', 24],
+  ['192.88.99.0', 24],
+  ['192.168.0.0', 16],
+  ['198.18.0.0', 15],
+  ['198.51.100.0', 24],
+  ['203.0.113.0', 24],
+  ['224.0.0.0', 3],
+];
+
+const NON_PUBLIC_IPV6_RANGES: readonly (readonly [string, number])[] = [
+  ['2001:2::', 48],
+  ['2001:10::', 28],
+  ['2001:20::', 28],
+  ['2001:db8::', 32],
+  ['3fff::', 20],
+];
+
+function ipv4ToNumber(ip: string): number {
+  return ip
+    .split('.')
+    .map(Number)
+    .reduce((value, octet) => value * 256 + octet, 0);
+}
+
+function isIpv4InCidr(
+  address: number,
+  network: string,
+  prefixLength: number,
+): boolean {
+  const blockSize = 2 ** (32 - prefixLength);
+  return Math.floor(address / blockSize) === Math.floor(ipv4ToNumber(network) / blockSize);
+}
+
+function ipv6ToBigInt(ip: string): bigint {
+  const [left = '', right = ''] = ip.split('::');
+  const leftSections = left ? left.split(':') : [];
+  const rightSections = right ? right.split(':') : [];
+  const missingSections = 8 - leftSections.length - rightSections.length;
+  const sections = [
+    ...leftSections,
+    ...Array.from({ length: missingSections }, () => '0'),
+    ...rightSections,
+  ];
+
+  return sections.reduce(
+    (value, section) => (value << 16n) | BigInt(Number.parseInt(section, 16)),
+    0n,
+  );
+}
+
+function isIpv6InCidr(
+  address: bigint,
+  network: bigint,
+  prefixLength: number,
+): boolean {
+  const shift = BigInt(128 - prefixLength);
+  return address >> shift === network >> shift;
 }
 
 export function formatLocation(

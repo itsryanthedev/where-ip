@@ -88,13 +88,13 @@ const contentRules = [
   {
     id: 'embedded-credential',
     pattern:
-      /\b(?:api[_-]?(?:key|token)|client[_-]?secret|access[_-]?token|refresh[_-]?token|password|passwd)\b\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/i,
+      /\b(?:api[_-]?(?:key|token)|client[_-]?secret|access[_-]?token|refresh[_-]?token|password|passwd)\b\s*["']?\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/i,
     capturedValue: 1,
   },
   {
     id: 'publisher-credential',
     pattern:
-      /\b[A-Z][A-Z0-9]*(?:_(?:API_)?TOKEN|_SECRET|_PASSWORD|_PRIVATE_KEY|_CERTIFICATE|_P12|_PFX)\b\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/,
+      /\b[A-Z][A-Z0-9]*(?:_(?:API_)?TOKEN|_SECRET|_PASSWORD|_PRIVATE_KEY|_CERTIFICATE|_P12|_PFX)\b\s*["']?\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/,
     capturedValue: 1,
   },
 ];
@@ -103,8 +103,9 @@ function git(arguments_, options = {}) {
   return execFileSync('git', arguments_, {
     cwd: process.cwd(),
     encoding: options.encoding ?? 'utf8',
+    input: options.input,
     maxBuffer: 128 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe'],
+    stdio: ['pipe', 'pipe', 'pipe'],
   });
 }
 
@@ -173,15 +174,62 @@ function isProbablyBinary(buffer) {
   return false;
 }
 
+function decodeTextBuffer(buffer) {
+  if (buffer.length === 0) {
+    return '';
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return buffer.subarray(2).toString('utf16le');
+  }
+  if (buffer[0] === 0xfe && buffer[1] === 0xff) {
+    return swapUtf16ByteOrder(buffer.subarray(2)).toString('utf16le');
+  }
+  if (buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
+    return buffer.subarray(3).toString('utf8');
+  }
+
+  const sampleLength = Math.min(buffer.length, 8_192);
+  let evenNulls = 0;
+  let oddNulls = 0;
+  for (let index = 0; index < sampleLength; index += 1) {
+    if (buffer[index] === 0) {
+      if (index % 2 === 0) {
+        evenNulls += 1;
+      } else {
+        oddNulls += 1;
+      }
+    }
+  }
+  const pairs = Math.floor(sampleLength / 2);
+  if (pairs >= 2 && oddNulls / pairs >= 0.3 && evenNulls / pairs <= 0.05) {
+    return buffer.toString('utf16le');
+  }
+  if (pairs >= 2 && evenNulls / pairs >= 0.3 && oddNulls / pairs <= 0.05) {
+    return swapUtf16ByteOrder(buffer).toString('utf16le');
+  }
+
+  return isProbablyBinary(buffer) ? null : buffer.toString('utf8');
+}
+
+function swapUtf16ByteOrder(buffer) {
+  const swapped = Buffer.alloc(buffer.length - (buffer.length % 2));
+  for (let index = 0; index < swapped.length; index += 2) {
+    swapped[index] = buffer[index + 1];
+    swapped[index + 1] = buffer[index];
+  }
+  return swapped;
+}
+
 function checkWorkingTree() {
   const files = splitNull(git(['ls-files', '-z']));
 
   for (const filePath of files) {
     checkPath(filePath, 'tracked');
 
-    const buffer = readFileSync(filePath);
-    if (!isProbablyBinary(buffer)) {
-      checkText(buffer.toString('utf8'), filePath, 'tracked');
+    const text = decodeTextBuffer(readFileSync(filePath));
+    if (text !== null) {
+      checkText(text, filePath, 'tracked');
     }
   }
 }
@@ -201,8 +249,9 @@ function checkStagedChanges() {
       continue;
     }
 
-    if (!isProbablyBinary(buffer)) {
-      checkText(buffer.toString('utf8'), filePath, 'staged');
+    const text = decodeTextBuffer(buffer);
+    if (text !== null) {
+      checkText(text, filePath, 'staged');
     }
   }
 }
@@ -219,33 +268,40 @@ function checkHistory() {
     checkPath(filePath, 'history');
   }
 
-  const patch = git([
-    'log',
-    '--all',
-    '--format=',
-    '--patch',
-    '--unified=0',
-    '--no-color',
-    '--no-ext-diff',
-    '--',
-    '.',
-  ]);
+  const historicalObjects = git(['rev-list', '--objects', '--all'])
+    .split(/\r?\n/)
+    .map((line) => {
+      const separator = line.indexOf(' ');
+      return separator > 0
+        ? { objectId: line.slice(0, separator), filePath: line.slice(separator + 1) }
+        : null;
+    })
+    .filter(Boolean);
+  const objectIds = [...new Set(historicalObjects.map(({ objectId }) => objectId))];
+  if (objectIds.length === 0) {
+    return;
+  }
+  const objectTypes = new Map(
+    git(['cat-file', '--batch-check=%(objectname) %(objecttype)'], {
+      input: `${objectIds.join('\n')}\n`,
+    })
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => line.split(' ', 2)),
+  );
+  const checkedBlobs = new Set();
 
-  let currentFile = 'unknown';
-  const patchLines = patch.split(/\r?\n/);
-  for (let index = 0; index < patchLines.length; index += 1) {
-    const line = patchLines[index];
-    const fileMatch = /^diff --git a\/(.+) b\/(.+)$/.exec(line);
-    if (fileMatch) {
-      currentFile = fileMatch[2];
+  for (const { objectId, filePath } of historicalObjects) {
+    if (objectTypes.get(objectId) !== 'blob' || checkedBlobs.has(objectId)) {
       continue;
     }
-
-    if (!line.startsWith('+') || line.startsWith('+++')) {
-      continue;
+    checkedBlobs.add(objectId);
+    const text = decodeTextBuffer(
+      git(['cat-file', 'blob', objectId], { encoding: 'buffer' }),
+    );
+    if (text !== null) {
+      checkText(text, filePath, 'history');
     }
-
-    checkText(line, currentFile, 'history', true);
   }
 }
 

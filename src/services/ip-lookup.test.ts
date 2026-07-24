@@ -68,6 +68,54 @@ describe('provider fallback chain', () => {
     expect(outcome.providerCooldowns.ipinfo).toBe(now + 120_000);
   });
 
+  test('caps provider Retry-After cooldowns at one hour', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        response(429, {}, { 'retry-after': '315360000' }),
+      )
+      .mockResolvedValueOnce(
+        response(200, {
+          ipAddress: '1.1.1.1',
+          countryCode: 'AU',
+          countryName: 'Australia',
+        }),
+      );
+    const now = Date.parse('2026-07-24T10:00:00.000Z');
+
+    const outcome = await lookupPublicIp({
+      preferredProvider: 'ipinfo',
+      fetchImplementation,
+      now,
+    });
+
+    expect(outcome.providerCooldowns.ipinfo).toBe(now + 60 * 60_000);
+  });
+
+  test('falls back before parsing a declared oversized response', async () => {
+    const oversizedJson = jest.fn();
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ...response(200, {}, { 'content-length': String(64 * 1024 + 1) }),
+        json: oversizedJson,
+      })
+      .mockResolvedValueOnce(
+        response(200, {
+          ipAddress: '1.1.1.1',
+          countryCode: 'AU',
+        }),
+      );
+
+    const outcome = await lookupPublicIp({
+      preferredProvider: 'ipinfo',
+      fetchImplementation,
+    });
+
+    expect(outcome.result.providerId).toBe('freeipapi');
+    expect(oversizedJson).not.toHaveBeenCalled();
+  });
+
   test('moves a user-selected provider to the front', async () => {
     const fetchImplementation = jest.fn(async () =>
       response(200, {

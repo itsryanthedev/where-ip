@@ -3,8 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   DEFAULT_PROVIDER_ID,
   isProviderId,
+  MAX_PROVIDER_COOLDOWN_MS,
+  MAX_PROVIDER_TEXT_LENGTH,
 } from '@/constants/providers';
 import type { IpResult, ProviderCooldowns, ProviderId } from '@/types/ip';
+import { inferIpVersion, isUsablePublicIp } from '@/utils/ip';
 
 const SETTINGS_KEY = '@where-ip/settings-v1';
 const CACHE_KEY = '@where-ip/cache-v1';
@@ -81,7 +84,7 @@ function parseSettings(raw?: string | null): PersistedSettings {
         ? value.preferredProvider
         : DEFAULT_PROVIDER_ID,
       acknowledgedAt:
-        typeof value.acknowledgedAt === 'string' ? value.acknowledgedAt : null,
+        isCanonicalIsoDate(value.acknowledgedAt) ? value.acknowledgedAt : null,
     };
   } catch {
     return defaultState().settings;
@@ -95,15 +98,7 @@ function parseCache(raw?: string | null): IpResult | null {
 
   try {
     const value: unknown = JSON.parse(raw);
-    if (
-      !isRecord(value) ||
-      typeof value.ip !== 'string' ||
-      typeof value.fetchedAt !== 'string' ||
-      !isProviderId(value.providerId)
-    ) {
-      return null;
-    }
-    return value as IpResult;
+    return isIpResult(value) ? value : null;
   } catch {
     return null;
   }
@@ -120,9 +115,15 @@ function parseCooldowns(raw?: string | null): ProviderCooldowns {
       return {};
     }
 
+    const now = Date.now();
     return Object.fromEntries(
       Object.entries(value).filter(
-        ([key, cooldown]) => isProviderId(key) && typeof cooldown === 'number',
+        ([key, cooldown]) =>
+          isProviderId(key) &&
+          typeof cooldown === 'number' &&
+          Number.isFinite(cooldown) &&
+          cooldown > now &&
+          cooldown <= now + MAX_PROVIDER_COOLDOWN_MS,
       ),
     ) as ProviderCooldowns;
   } catch {
@@ -134,3 +135,69 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function isIpResult(value: unknown): value is IpResult {
+  if (
+    !isRecord(value) ||
+    typeof value.ip !== 'string' ||
+    !isUsablePublicIp(value.ip) ||
+    (value.ipVersion !== 4 && value.ipVersion !== 6) ||
+    inferIpVersion(value.ip) !== value.ipVersion ||
+    typeof value.countryCode !== 'string' ||
+    !/^[A-Z]{2}$/.test(value.countryCode) ||
+    !isProviderId(value.providerId) ||
+    !isCanonicalIsoDate(value.fetchedAt)
+  ) {
+    return false;
+  }
+
+  const stringFields = [
+    'countryName',
+    'city',
+    'region',
+    'postalCode',
+    'timezone',
+    'asn',
+    'organization',
+    'isp',
+  ] as const;
+  if (
+    stringFields.some(
+      (field) =>
+        value[field] !== undefined &&
+        (typeof value[field] !== 'string' ||
+          value[field].length > MAX_PROVIDER_TEXT_LENGTH),
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    isOptionalCoordinate(value.latitude, -90, 90) &&
+    isOptionalCoordinate(value.longitude, -180, 180)
+  );
+}
+
+function isOptionalCoordinate(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+): boolean {
+  return (
+    value === undefined ||
+    (typeof value === 'number' &&
+      Number.isFinite(value) &&
+      value >= minimum &&
+      value <= maximum)
+  );
+}
+
+function isCanonicalIsoDate(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const timestamp = Date.parse(value);
+  return (
+    Number.isFinite(timestamp) &&
+    new Date(timestamp).toISOString() === value
+  );
+}

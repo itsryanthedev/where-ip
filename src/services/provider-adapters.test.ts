@@ -97,5 +97,47 @@ describe('provider response adapters', () => {
       InvalidProviderResponseError,
     );
   });
-});
 
+  test('rejects non-global IP ranges from every provider', () => {
+    expect(() =>
+      parseIpinfo({ ip: '100.64.0.1', country: 'US' }, fetchedAt),
+    ).toThrow(InvalidProviderResponseError);
+    expect(() =>
+      parseFreeIpApi(
+        { ipAddress: '192.0.2.1', countryCode: 'US' },
+        fetchedAt,
+      ),
+    ).toThrow(InvalidProviderResponseError);
+    expect(() =>
+      parseIpWhois(
+        { success: true, ip: '2001:db8::1', country_code: 'US' },
+        fetchedAt,
+      ),
+    ).toThrow(InvalidProviderResponseError);
+  });
+
+  test('rejects invalid coordinates and drops oversized optional text', () => {
+    expect(() =>
+      parseIpWhois(
+        {
+          success: true,
+          ip: '9.9.9.9',
+          country_code: 'US',
+          latitude: 91,
+        },
+        fetchedAt,
+      ),
+    ).toThrow(InvalidProviderResponseError);
+
+    expect(
+      parseIpinfo(
+        {
+          ip: '8.8.8.8',
+          country: 'US',
+          city: 'x'.repeat(513),
+        },
+        fetchedAt,
+      ).city,
+    ).toBeUndefined();
+  });
+});
