@@ -103,21 +103,24 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   const performLookup = useCallback(async (
     manualRefresh = false,
     providerOverride?: ProviderId,
-  ) => {
+    options?: { skipAgeCheck?: boolean },
+  ): Promise<boolean> => {
     if (requestInFlight.current) {
-      return;
+      return false;
     }
 
     const currentResult = resultRef.current;
     const currentCooldowns = providerCooldownsRef.current;
-    const resultAge = currentResult
-      ? Date.now() - Date.parse(currentResult.fetchedAt)
-      : Infinity;
-    const minimumAge = manualRefresh
-      ? REFRESH_COOLDOWN_MS
-      : CACHE_FRESHNESS_MS;
-    if (resultAge < minimumAge) {
-      return;
+    if (!options?.skipAgeCheck) {
+      const resultAge = currentResult
+        ? Date.now() - Date.parse(currentResult.fetchedAt)
+        : Infinity;
+      const minimumAge = manualRefresh
+        ? REFRESH_COOLDOWN_MS
+        : CACHE_FRESHNESS_MS;
+      if (resultAge < minimumAge) {
+        return false;
+      }
     }
 
     requestInFlight.current = true;
@@ -147,6 +150,7 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         saveCache(outcome.result),
         saveProviderCooldowns(outcome.providerCooldowns),
       ]);
+      return true;
     } catch (error) {
       const nextCooldowns =
         error instanceof LookupChainError
@@ -160,6 +164,7 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
           : 'Your network information could not be loaded.',
       );
       await saveProviderCooldowns(nextCooldowns).catch(() => undefined);
+      return true;
     } finally {
       requestInFlight.current = false;
     }
@@ -230,9 +235,16 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         preferredProvider: providerId,
       }).catch(() => undefined);
 
-      const waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
-      if (waitMs > 0) {
+      let waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
+      while (waitMs > 0) {
         await delay(waitMs);
+        if (
+          providerSwitchTokenRef.current !== token ||
+          !mountedRef.current
+        ) {
+          return;
+        }
+        waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
       }
 
       if (
@@ -245,7 +257,7 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
       setRefreshingProvider(providerId);
 
       try {
-        await performLookup(true, providerId);
+        await performLookup(true, providerId, { skipAgeCheck: true });
       } finally {
         if (providerSwitchTokenRef.current === token && mountedRef.current) {
           setPendingProviderRefresh((current) =>
