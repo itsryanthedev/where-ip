@@ -16,7 +16,10 @@ describe('GitHub Actions supply-chain controls', () => {
       );
 
       workflow.split('\n').forEach((line, index) => {
-        const reference = line.match(/^\s*uses:\s*([^\s#]+)/)?.[1];
+        const match = line.match(
+          /^\s*uses:\s*(?:"([^"]+)"|'([^']+)'|([^\s#]+))/,
+        );
+        const reference = match?.[1] ?? match?.[2] ?? match?.[3];
 
         if (
           reference &&

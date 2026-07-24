@@ -34,11 +34,20 @@ export function isUsablePublicIp(ip: string): boolean {
 
   if (version === 6) {
     const address = ipv6ToBigInt(ip);
-    return (
-      isIpv6InCidr(address, ipv6ToBigInt('2000::'), 3) &&
-      !NON_PUBLIC_IPV6_RANGES.some(([network, prefixLength]) =>
+    if (!isIpv6InCidr(address, ipv6ToBigInt('2000::'), 3)) {
+      return false;
+    }
+
+    if (
+      PUBLIC_IPV6_CARVE_OUTS.some(([network, prefixLength]) =>
         isIpv6InCidr(address, ipv6ToBigInt(network), prefixLength),
       )
+    ) {
+      return true;
+    }
+
+    return !NON_PUBLIC_IPV6_RANGES.some(([network, prefixLength]) =>
+      isIpv6InCidr(address, ipv6ToBigInt(network), prefixLength),
     );
   }
 
@@ -62,10 +71,18 @@ const NON_PUBLIC_IPV4_RANGES: readonly (readonly [string, number])[] = [
   ['224.0.0.0', 3],
 ];
 
+// 2001::/23 is the IETF Protocol Assignments pool (not globally usable by
+// default). Keep IANA Globally Reachable anycast/service carve-outs public.
+const PUBLIC_IPV6_CARVE_OUTS: readonly (readonly [string, number])[] = [
+  ['2001:1::1', 128],
+  ['2001:1::2', 128],
+  ['2001:1::3', 128],
+  ['2001:3::', 32],
+  ['2001:4:112::', 48],
+];
+
 const NON_PUBLIC_IPV6_RANGES: readonly (readonly [string, number])[] = [
-  ['2001:2::', 48],
-  ['2001:10::', 28],
-  ['2001:20::', 28],
+  ['2001::', 23],
   ['2001:db8::', 32],
   ['3fff::', 20],
 ];
