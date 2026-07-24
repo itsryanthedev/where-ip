@@ -272,10 +272,9 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
     [performLookup],
   );
 
-  const refresh = useCallback(
-    () => performLookup(true),
-    [performLookup],
-  );
+  const refresh = useCallback(async () => {
+    await performLookup(true);
+  }, [performLookup]);
 
   const value = useMemo<WhereIpContextValue>(
     () => ({
