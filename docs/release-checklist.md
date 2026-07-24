@@ -58,3 +58,33 @@ pnpm dlx expo-doctor
 - [ ] Submit to Play internal testing first for a final install smoke test.
 - [ ] Submit to TestFlight for a final iOS smoke test.
 - [ ] Promote to production only after the signed store builds pass.
+
+## Desktop local smoke (unsigned)
+
+Phase 4 packaging is unsigned and local/CI-only. Signing, notarization, and
+store channels are later phases.
+
+Default packaging uses `scripts/package-desktop.mjs` (cached Electron zip +
+system unzip). Electron Forge is installed and configured; `@electron/rebuild`
+still *declares* a git URL for `@electron/node-gyp`, but
+`pnpm-workspace.yaml` overrides that to the published npm package
+`@electron/node-gyp@10.2.0-electron.2` so `blockExoticSubdeps` stays on.
+Optional: `pnpm run electron:package:forge`.
+
+```bash
+pnpm install --frozen-lockfile
+pnpm run electron:test
+pnpm run export:desktop
+pnpm run electron:package
+# Optional Forge package:
+# pnpm run electron:package:forge
+# Optional interactive smoke (requires a display):
+# pnpm run electron:start
+```
+
+- [ ] Confirm `electron:test` passes allowlist and protocol path checks.
+- [ ] Confirm `export:desktop` writes `dist-desktop/` with root asset paths.
+- [ ] Confirm `electron:package` writes an unsigned app under `out/`.
+- [ ] Confirm cold start loads `whereip://app/` and IP lookup works via IPC.
+- [ ] Confirm external links only open allowlisted HTTPS destinations.
+- [ ] Confirm `pnpm verify` still passes without packaging Electron.

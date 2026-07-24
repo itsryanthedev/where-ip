@@ -12,6 +12,7 @@ import {
   useWhereIp,
   WhereIpProvider,
 } from '@/providers/where-ip-provider';
+import { withWebBaseUrl } from '@/utils/web-base-url';
 
 SplashScreen.preventAutoHideAsync();
 SplashScreen.setOptions({
@@ -96,22 +97,35 @@ export default function RootLayout() {
             property="og:description"
             content="Know what the internet sees. Free, open source, and privacy first."
           />
-          <meta property="og:image" content="/og-image.png" />
+          <meta
+            property="og:image"
+            content={withWebBaseUrl('/og-image.png')}
+          />
           <meta name="twitter:card" content="summary_large_image" />
-          <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+          <link
+            rel="icon"
+            type="image/svg+xml"
+            href={withWebBaseUrl('/favicon.svg')}
+          />
           <link
             rel="icon"
             type="image/png"
-            href="/favicon-96x96.png"
+            href={withWebBaseUrl('/favicon-96x96.png')}
             sizes="96x96"
           />
-          <link rel="shortcut icon" href="/favicon.ico" />
+          <link
+            rel="shortcut icon"
+            href={withWebBaseUrl('/favicon.ico')}
+          />
           <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="/apple-touch-icon.png"
+            href={withWebBaseUrl('/apple-touch-icon.png')}
           />
-          <link rel="manifest" href="/site.webmanifest" />
+          <link
+            rel="manifest"
+            href={withWebBaseUrl('/site.webmanifest')}
+          />
         </Head>
       ) : null}
       <WhereIpProvider>

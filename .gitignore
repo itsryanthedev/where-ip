@@ -7,8 +7,14 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-desktop/
+dist-pages/
 web-build/
 expo-env.d.ts
+
+# Electron Forge
+out/
+.vite/
 
 # Native
 .kotlin/
