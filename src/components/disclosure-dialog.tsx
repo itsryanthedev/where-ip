@@ -1,0 +1,199 @@
+import { useState } from 'react';
+import {
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+
+import { ActionButton } from '@/components/action-button';
+import { AppLogo } from '@/components/app-logo';
+import { ExternalLink } from '@/components/external-link';
+import { APP_LINKS } from '@/constants/links';
+import { PROVIDERS } from '@/constants/providers';
+import { spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { useWhereIp } from '@/providers/where-ip-provider';
+
+export function DisclosureDialog() {
+  const colors = useAppColors();
+  const { acknowledgementRequired, acceptDisclosure } = useWhereIp();
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleContinue = async () => {
+    setSubmitting(true);
+    await acceptDisclosure().finally(() => setSubmitting(false));
+  };
+
+  return (
+    <Modal
+      animationType="fade"
+      transparent
+      visible={acknowledgementRequired}
+      onRequestClose={() => undefined}
+    >
+      <View style={[styles.overlay, { backgroundColor: colors.overlay }]}>
+        <View
+          accessibilityViewIsModal
+          style={[
+            styles.dialog,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              boxShadow: `0 20px 60px ${colors.shadow}`,
+            },
+          ]}
+        >
+          <ScrollView
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.logoRow}>
+              <AppLogo size={64} />
+              <View style={styles.headingGroup}>
+                <Text style={[styles.eyebrow, { color: colors.accent }]}>
+                  BEFORE THE FIRST LOOKUP
+                </Text>
+                <Text
+                  accessibilityRole="header"
+                  style={[styles.title, { color: colors.text }]}
+                >
+                  Privacy, in plain language
+                </Text>
+              </View>
+            </View>
+
+            <Text selectable style={[styles.body, { color: colors.text }]}>
+              WhereIP is free and open source. It has no account, ads, analytics,
+              or tracking SDKs.
+            </Text>
+            <Text selectable style={[styles.body, { color: colors.text }]}>
+              To show your public IP and approximate IP-based location, your
+              device contacts IPinfo directly. If it is unavailable, WhereIP may
+              try FreeIPAPI and then ipwho.is. Every contacted provider
+              necessarily receives your public IP and applies its own policies.
+            </Text>
+            <Text selectable style={[styles.body, { color: colors.text }]}>
+              WhereIP operates no backend and receives none of your lookup data.
+              A short-lived result is stored only on this device to reduce
+              requests. No GPS permission is requested.
+            </Text>
+
+            <View
+              style={[
+                styles.providerLinks,
+                { backgroundColor: colors.surfaceRaised, borderColor: colors.border },
+              ]}
+            >
+              <Text style={[styles.providerHeading, { color: colors.text }]}>
+                Third-party policies
+              </Text>
+              {PROVIDERS.map((provider) => (
+                <View key={provider.id} style={styles.providerRow}>
+                  <Text style={[styles.providerName, { color: colors.textMuted }]}>
+                    {provider.name}
+                  </Text>
+                  <View style={styles.inlineLinks}>
+                    <ExternalLink
+                      compact
+                      href={provider.privacyUrl}
+                      label="Privacy"
+                    />
+                    <ExternalLink compact href={provider.termsUrl} label="Terms" />
+                  </View>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.actions}>
+              <ActionButton
+                label="Continue"
+                loading={submitting}
+                onPress={() => void handleContinue()}
+              />
+              <ExternalLink href={APP_LINKS.repository} label="View source on GitHub" />
+            </View>
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  dialog: {
+    width: '100%',
+    maxWidth: 640,
+    maxHeight: '92%',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderRadius: 28,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+  },
+  content: {
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  logoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.lg,
+  },
+  headingGroup: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  eyebrow: {
+    fontSize: 11,
+    lineHeight: 15,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+  },
+  title: {
+    fontSize: 25,
+    lineHeight: 30,
+    fontWeight: '800',
+  },
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  providerLinks: {
+    borderWidth: 1,
+    borderRadius: 18,
+    borderCurve: 'continuous',
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  providerHeading: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '700',
+  },
+  providerRow: {
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  providerName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  inlineLinks: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  actions: {
+    gap: spacing.sm,
+  },
+});

@@ -1,0 +1,12 @@
+# Release and credential-handling surfaces require maintainer review.
+/.github/ @itsryanthedev
+/.githooks/ @itsryanthedev
+/.eas/ @itsryanthedev
+/electron/ @itsryanthedev
+/.gitignore @itsryanthedev
+/app.json @itsryanthedev
+/eas.json @itsryanthedev
+/package.json @itsryanthedev
+/pnpm-lock.yaml @itsryanthedev
+/SECURITY.md @itsryanthedev
+/scripts/check-secrets.mjs @itsryanthedev
