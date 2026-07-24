@@ -87,10 +87,12 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   const preferredProviderRef = useRef<ProviderId>(DEFAULT_PROVIDER_ID);
   const acknowledgedAtRef = useRef<string | null>(null);
 
-  resultRef.current = result;
-  providerCooldownsRef.current = providerCooldowns;
-  preferredProviderRef.current = preferredProvider;
-  acknowledgedAtRef.current = acknowledgedAt;
+  useEffect(() => {
+    resultRef.current = result;
+    providerCooldownsRef.current = providerCooldowns;
+    preferredProviderRef.current = preferredProvider;
+    acknowledgedAtRef.current = acknowledgedAt;
+  }, [acknowledgedAt, preferredProvider, providerCooldowns, result]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -139,6 +141,8 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         providerCooldowns: currentCooldowns,
       });
 
+      resultRef.current = outcome.result;
+      providerCooldownsRef.current = outcome.providerCooldowns;
       setResult(outcome.result);
       setProviderCooldowns(outcome.providerCooldowns);
       setFallbackFrom(
@@ -156,6 +160,7 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         error instanceof LookupChainError
           ? error.providerCooldowns
           : providerCooldownsRef.current;
+      providerCooldownsRef.current = nextCooldowns;
       setProviderCooldowns(nextCooldowns);
       setStatus(resultRef.current ? 'stale' : 'error');
       setErrorMessage(

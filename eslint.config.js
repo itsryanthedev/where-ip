@@ -6,4 +6,18 @@ module.exports = defineConfig([
   {
     ignores: ['dist/**', 'coverage/**', 'store-assets/**'],
   },
+  {
+    files: ['scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        afterEach: 'readonly',
+        beforeEach: 'readonly',
+        describe: 'readonly',
+        expect: 'readonly',
+        jest: 'readonly',
+        test: 'readonly',
+      },
+    },
+  },
 ]);
