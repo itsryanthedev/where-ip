@@ -23,6 +23,29 @@ describe('IP utilities', () => {
     expect(isUsablePublicIp('1.1.1.1')).toBe(true);
   });
 
+  test('rejects special-purpose addresses that are not globally reachable', () => {
+    expect(isUsablePublicIp('100.64.0.1')).toBe(false);
+    expect(isUsablePublicIp('192.0.2.1')).toBe(false);
+    expect(isUsablePublicIp('198.18.0.1')).toBe(false);
+    expect(isUsablePublicIp('198.51.100.1')).toBe(false);
+    expect(isUsablePublicIp('203.0.113.1')).toBe(false);
+    expect(isUsablePublicIp('2001::1')).toBe(false);
+    expect(isUsablePublicIp('2001:5::1')).toBe(false);
+    expect(isUsablePublicIp('2001:2::1')).toBe(false);
+    expect(isUsablePublicIp('2001:20::1')).toBe(false);
+    expect(isUsablePublicIp('2001:db8::1')).toBe(false);
+    expect(isUsablePublicIp('3fff::1')).toBe(false);
+    expect(isUsablePublicIp('2606:4700:4700::1111')).toBe(true);
+  });
+
+  test('keeps IANA globally reachable 2001::/23 anycast carve-outs public', () => {
+    expect(isUsablePublicIp('2001:1::1')).toBe(true);
+    expect(isUsablePublicIp('2001:1::2')).toBe(true);
+    expect(isUsablePublicIp('2001:1::3')).toBe(true);
+    expect(isUsablePublicIp('2001:3::1')).toBe(true);
+    expect(isUsablePublicIp('2001:4:112::1')).toBe(true);
+  });
+
   test('rejects malformed IPv6 addresses', () => {
     expect(inferIpVersion('1:2:3:4:5:6:7:')).toBeNull();
     expect(inferIpVersion('1:2:3:4:5:6:7:8:9')).toBeNull();

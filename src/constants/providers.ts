@@ -37,6 +37,9 @@ export const REFRESH_COOLDOWN_MS = 60_000;
 export const CACHE_FRESHNESS_MS = 15 * 60_000;
 export const PROVIDER_TIMEOUT_MS = 7_000;
 export const FAILURE_RETRY_DELAY_MS = 15_000;
+export const MAX_PROVIDER_COOLDOWN_MS = 60 * 60_000;
+export const MAX_PROVIDER_RESPONSE_BYTES = 64 * 1024;
+export const MAX_PROVIDER_TEXT_LENGTH = 512;
 
 export function getProvider(providerId: ProviderId): ProviderDefinition {
   const provider = PROVIDERS.find(({ id }) => id === providerId);
@@ -54,4 +57,3 @@ export function getProviderOrder(preferred: ProviderId): ProviderDefinition[] {
 export function isProviderId(value: unknown): value is ProviderId {
   return PROVIDERS.some(({ id }) => id === value);
 }
-

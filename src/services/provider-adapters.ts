@@ -1,4 +1,7 @@
-import { getProvider } from '@/constants/providers';
+import {
+  getProvider,
+  MAX_PROVIDER_TEXT_LENGTH,
+} from '@/constants/providers';
 import type { IpResult, ProviderId } from '@/types/ip';
 import { inferIpVersion, isUsablePublicIp } from '@/utils/ip';
 
@@ -115,6 +118,17 @@ function validatedResult(
   if (!/^[A-Z]{2}$/.test(countryCode)) {
     throw new InvalidProviderResponseError(result.providerId, 'invalid country code');
   }
+  if (
+    (result.latitude !== undefined &&
+      (result.latitude < -90 || result.latitude > 90)) ||
+    (result.longitude !== undefined &&
+      (result.longitude < -180 || result.longitude > 180))
+  ) {
+    throw new InvalidProviderResponseError(
+      result.providerId,
+      'invalid coordinates',
+    );
+  }
 
   return {
     ...result,
@@ -143,7 +157,13 @@ function requiredString(value: unknown, providerId: ProviderId, field: string): 
 }
 
 function optionalString(value: unknown): string | undefined {
-  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const parsed = value.trim();
+  return parsed && parsed.length <= MAX_PROVIDER_TEXT_LENGTH
+    ? parsed
+    : undefined;
 }
 
 function optionalNumberString(value: unknown): string | undefined {
@@ -153,4 +173,3 @@ function optionalNumberString(value: unknown): string | undefined {
 function finiteNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
-

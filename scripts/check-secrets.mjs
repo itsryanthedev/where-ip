@@ -88,24 +88,31 @@ const contentRules = [
   {
     id: 'embedded-credential',
     pattern:
-      /\b(?:api[_-]?(?:key|token)|client[_-]?secret|access[_-]?token|refresh[_-]?token|password|passwd)\b\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/i,
+      /\b(?:api[_-]?(?:key|token)|client[_-]?secret|access[_-]?token|refresh[_-]?token|password|passwd)\b\s*["']?\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/i,
     capturedValue: 1,
   },
   {
     id: 'publisher-credential',
     pattern:
-      /\b[A-Z][A-Z0-9]*(?:_(?:API_)?TOKEN|_SECRET|_PASSWORD|_PRIVATE_KEY|_CERTIFICATE|_P12|_PFX)\b\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/,
+      /\b[A-Z][A-Z0-9]*(?:_(?:API_)?TOKEN|_SECRET|_PASSWORD|_PRIVATE_KEY|_CERTIFICATE|_P12|_PFX)\b\s*["']?\s*[:=]\s*["']([^"' \t\r\n]{12,})["']/,
     capturedValue: 1,
   },
 ];
 
 function git(arguments_, options = {}) {
-  return execFileSync('git', arguments_, {
+  const execOptions = {
     cwd: process.cwd(),
-    encoding: options.encoding ?? 'utf8',
+    input: options.input,
     maxBuffer: 128 * 1024 * 1024,
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+    stdio: ['pipe', 'pipe', 'pipe'],
+  };
+
+  // Node returns a Buffer when encoding is omitted; the string 'buffer' is invalid.
+  if (options.encoding !== 'buffer') {
+    execOptions.encoding = options.encoding ?? 'utf8';
+  }
+
+  return execFileSync('git', arguments_, execOptions);
 }
 
 function splitNull(value) {
@@ -173,15 +180,62 @@ function isProbablyBinary(buffer) {
   return false;
 }
 
+function decodeTextBuffer(buffer) {
+  if (buffer.length === 0) {
+    return '';
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xfe) {
+    return buffer.subarray(2).toString('utf16le');
+  }
+  if (buffer[0] === 0xfe && buffer[1] === 0xff) {
+    return swapUtf16ByteOrder(buffer.subarray(2)).toString('utf16le');
+  }
+  if (buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
+    return buffer.subarray(3).toString('utf8');
+  }
+
+  const sampleLength = Math.min(buffer.length, 8_192);
+  let evenNulls = 0;
+  let oddNulls = 0;
+  for (let index = 0; index < sampleLength; index += 1) {
+    if (buffer[index] === 0) {
+      if (index % 2 === 0) {
+        evenNulls += 1;
+      } else {
+        oddNulls += 1;
+      }
+    }
+  }
+  const pairs = Math.floor(sampleLength / 2);
+  if (pairs >= 2 && oddNulls / pairs >= 0.3 && evenNulls / pairs <= 0.05) {
+    return buffer.toString('utf16le');
+  }
+  if (pairs >= 2 && evenNulls / pairs >= 0.3 && oddNulls / pairs <= 0.05) {
+    return swapUtf16ByteOrder(buffer).toString('utf16le');
+  }
+
+  return isProbablyBinary(buffer) ? null : buffer.toString('utf8');
+}
+
+function swapUtf16ByteOrder(buffer) {
+  const swapped = Buffer.alloc(buffer.length - (buffer.length % 2));
+  for (let index = 0; index < swapped.length; index += 2) {
+    swapped[index] = buffer[index + 1];
+    swapped[index + 1] = buffer[index];
+  }
+  return swapped;
+}
+
 function checkWorkingTree() {
   const files = splitNull(git(['ls-files', '-z']));
 
   for (const filePath of files) {
     checkPath(filePath, 'tracked');
 
-    const buffer = readFileSync(filePath);
-    if (!isProbablyBinary(buffer)) {
-      checkText(buffer.toString('utf8'), filePath, 'tracked');
+    const text = decodeTextBuffer(readFileSync(filePath));
+    if (text !== null) {
+      checkText(text, filePath, 'tracked');
     }
   }
 }
@@ -201,8 +255,25 @@ function checkStagedChanges() {
       continue;
     }
 
-    if (!isProbablyBinary(buffer)) {
-      checkText(buffer.toString('utf8'), filePath, 'staged');
+    const text = decodeTextBuffer(buffer);
+    if (text !== null) {
+      checkText(text, filePath, 'staged');
+    }
+  }
+}
+
+function scanHistoricalBlobsIndividually(blobIds, blobPaths) {
+  for (const objectId of blobIds) {
+    let blobBuffer;
+    try {
+      blobBuffer = git(['cat-file', 'blob', objectId], { encoding: 'buffer' });
+    } catch {
+      continue;
+    }
+
+    const text = decodeTextBuffer(blobBuffer);
+    if (text !== null) {
+      checkText(text, blobPaths.get(objectId), 'history');
     }
   }
 }
@@ -219,33 +290,106 @@ function checkHistory() {
     checkPath(filePath, 'history');
   }
 
-  const patch = git([
-    'log',
-    '--all',
-    '--format=',
-    '--patch',
-    '--unified=0',
-    '--no-color',
-    '--no-ext-diff',
-    '--',
-    '.',
-  ]);
+  const historicalObjects = git(['rev-list', '--objects', '--all'])
+    .split(/\r?\n/)
+    .map((line) => {
+      const separator = line.indexOf(' ');
+      if (separator <= 0) {
+        return null;
+      }
+      const filePath = line.slice(separator + 1);
+      return filePath
+        ? { objectId: line.slice(0, separator), filePath }
+        : null;
+    })
+    .filter(Boolean);
+  const blobPaths = new Map();
+  for (const { objectId, filePath } of historicalObjects) {
+    if (!blobPaths.has(objectId)) {
+      blobPaths.set(objectId, filePath);
+    }
+  }
+  const objectIds = [...blobPaths.keys()];
+  if (objectIds.length === 0) {
+    return;
+  }
 
-  let currentFile = 'unknown';
-  const patchLines = patch.split(/\r?\n/);
-  for (let index = 0; index < patchLines.length; index += 1) {
-    const line = patchLines[index];
-    const fileMatch = /^diff --git a\/(.+) b\/(.+)$/.exec(line);
-    if (fileMatch) {
-      currentFile = fileMatch[2];
+  let objectTypes;
+  try {
+    objectTypes = new Map(
+      git(['cat-file', '--batch-check=%(objectname) %(objecttype)'], {
+        input: `${objectIds.join('\n')}\n`,
+      })
+        .trim()
+        .split(/\r?\n/)
+        .map((line) => line.split(' ', 2)),
+    );
+  } catch {
+    console.error(
+      'check-secrets: cat-file --batch-check failed; falling back to per-blob history scan',
+    );
+    scanHistoricalBlobsIndividually(objectIds, blobPaths);
+    return;
+  }
+
+  const blobIds = objectIds.filter((objectId) => objectTypes.get(objectId) === 'blob');
+  if (blobIds.length === 0) {
+    return;
+  }
+
+  let batchBuffer;
+  try {
+    batchBuffer = git(['cat-file', '--batch'], {
+      encoding: 'buffer',
+      input: `${blobIds.join('\n')}\n`,
+    });
+  } catch {
+    console.error(
+      'check-secrets: cat-file --batch failed; falling back to per-blob history scan',
+    );
+    scanHistoricalBlobsIndividually(blobIds, blobPaths);
+    return;
+  }
+
+  let offset = 0;
+  for (let index = 0; index < blobIds.length; index += 1) {
+    const objectId = blobIds[index];
+    const headerEnd = batchBuffer.indexOf(0x0a, offset);
+    if (headerEnd === -1) {
+      console.error(
+        'check-secrets: truncated history batch output; finishing with per-blob scan',
+      );
+      scanHistoricalBlobsIndividually(blobIds.slice(index), blobPaths);
+      break;
+    }
+
+    const header = batchBuffer.subarray(offset, headerEnd).toString('utf8');
+    offset = headerEnd + 1;
+
+    if (header.endsWith(' missing')) {
       continue;
     }
 
-    if (!line.startsWith('+') || line.startsWith('+++')) {
-      continue;
+    const sizeToken = header.split(' ')[2];
+    const size = Number(sizeToken);
+    if (!Number.isFinite(size) || size < 0 || offset + size > batchBuffer.length) {
+      console.error(
+        `check-secrets: unexpected history batch frame for ${objectId}; finishing with per-blob scan`,
+      );
+      scanHistoricalBlobsIndividually(blobIds.slice(index), blobPaths);
+      break;
     }
 
-    checkText(line, currentFile, 'history', true);
+    const content = batchBuffer.subarray(offset, offset + size);
+    offset += size;
+    if (batchBuffer[offset] === 0x0a) {
+      offset += 1;
+    }
+
+    const text = decodeTextBuffer(content);
+    if (text !== null) {
+      checkText(text, blobPaths.get(objectId), 'history');
+    }
   }
 }
 

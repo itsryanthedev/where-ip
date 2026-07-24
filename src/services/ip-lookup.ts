@@ -3,6 +3,8 @@ import { fetch as expoFetch } from 'expo/fetch';
 import {
   FAILURE_RETRY_DELAY_MS,
   getProviderOrder,
+  MAX_PROVIDER_COOLDOWN_MS,
+  MAX_PROVIDER_RESPONSE_BYTES,
   PROVIDER_TIMEOUT_MS,
 } from '@/constants/providers';
 import { parseProviderResponse } from '@/services/provider-adapters';
@@ -83,6 +85,12 @@ export async function lookupPublicIp({
         continue;
       }
 
+      if (declaredResponseIsTooLarge(response.headers)) {
+        cooldowns[provider.id] = now + FAILURE_RETRY_DELAY_MS;
+        failures.push(`${provider.name} returned an oversized response`);
+        continue;
+      }
+
       const payload = await response.json();
       const result = parseProviderResponse(
         provider.id,
@@ -124,9 +132,19 @@ function parseRetryAfter(value: string | null, now: number): number | undefined 
 
   const seconds = Number(value);
   if (Number.isFinite(seconds) && seconds >= 0) {
-    return now + seconds * 1000;
+    return Math.min(now + seconds * 1000, now + MAX_PROVIDER_COOLDOWN_MS);
   }
 
   const date = Date.parse(value);
-  return Number.isFinite(date) && date > now ? date : undefined;
+  return Number.isFinite(date) && date > now
+    ? Math.min(date, now + MAX_PROVIDER_COOLDOWN_MS)
+    : undefined;
+}
+
+function declaredResponseIsTooLarge(headers: Headers): boolean {
+  const contentLength = Number(headers.get('content-length'));
+  return (
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_PROVIDER_RESPONSE_BYTES
+  );
 }

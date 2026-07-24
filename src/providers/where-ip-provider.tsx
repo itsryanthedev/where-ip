@@ -68,8 +68,6 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   const [acknowledgedAt, setAcknowledgedAt] = useState<string | null>(null);
   const [preferredProvider, setPreferredProviderState] =
     useState<ProviderId>(DEFAULT_PROVIDER_ID);
-  const [providerCooldowns, setProviderCooldowns] =
-    useState<ProviderCooldowns>({});
   const [result, setResult] = useState<IpResult | null>(null);
   const [status, setStatus] = useState<LookupStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -86,11 +84,6 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   const providerCooldownsRef = useRef<ProviderCooldowns>({});
   const preferredProviderRef = useRef<ProviderId>(DEFAULT_PROVIDER_ID);
   const acknowledgedAtRef = useRef<string | null>(null);
-
-  resultRef.current = result;
-  providerCooldownsRef.current = providerCooldowns;
-  preferredProviderRef.current = preferredProvider;
-  acknowledgedAtRef.current = acknowledgedAt;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -124,12 +117,17 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
     }
 
     requestInFlight.current = true;
-    setStatus(currentResult ? 'refreshing' : 'loading');
-    setErrorMessage(null);
+    if (mountedRef.current) {
+      setStatus(currentResult ? 'refreshing' : 'loading');
+      setErrorMessage(null);
+    }
 
     try {
       const requestedProvider = providerOverride ?? preferredProviderRef.current;
       const networkState = await NetInfo.fetch();
+      if (!mountedRef.current) {
+        return false;
+      }
       if (networkState.isConnected === false) {
         throw new Error('You appear to be offline. Your last result is still available.');
       }
@@ -139,12 +137,18 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         providerCooldowns: currentCooldowns,
       });
 
-      setResult(outcome.result);
-      setProviderCooldowns(outcome.providerCooldowns);
-      setFallbackFrom(
-        outcome.result.providerId === requestedProvider ? null : requestedProvider,
-      );
-      setStatus('success');
+      resultRef.current = outcome.result;
+      providerCooldownsRef.current = outcome.providerCooldowns;
+
+      if (mountedRef.current) {
+        setResult(outcome.result);
+        setFallbackFrom(
+          outcome.result.providerId === requestedProvider
+            ? null
+            : requestedProvider,
+        );
+        setStatus('success');
+      }
 
       await Promise.all([
         saveCache(outcome.result),
@@ -156,13 +160,17 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         error instanceof LookupChainError
           ? error.providerCooldowns
           : providerCooldownsRef.current;
-      setProviderCooldowns(nextCooldowns);
-      setStatus(resultRef.current ? 'stale' : 'error');
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : 'Your network information could not be loaded.',
-      );
+      providerCooldownsRef.current = nextCooldowns;
+
+      if (mountedRef.current) {
+        setStatus(resultRef.current ? 'stale' : 'error');
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Your network information could not be loaded.',
+        );
+      }
+
       await saveProviderCooldowns(nextCooldowns).catch(() => undefined);
       return true;
     } finally {
@@ -173,20 +181,19 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     let active = true;
 
-    loadPersistedState().then((persisted) => {
-      if (!active) {
+    void loadPersistedState().then((persisted) => {
+      if (!active || !mountedRef.current) {
         return;
       }
-
-      setPreferredProviderState(persisted.settings.preferredProvider);
-      setAcknowledgedAt(persisted.settings.acknowledgedAt);
-      setProviderCooldowns(persisted.providerCooldowns);
-      setResult(persisted.cache);
 
       preferredProviderRef.current = persisted.settings.preferredProvider;
       acknowledgedAtRef.current = persisted.settings.acknowledgedAt;
       providerCooldownsRef.current = persisted.providerCooldowns;
       resultRef.current = persisted.cache;
+
+      setPreferredProviderState(persisted.settings.preferredProvider);
+      setAcknowledgedAt(persisted.settings.acknowledgedAt);
+      setResult(persisted.cache);
 
       if (persisted.cache) {
         const age = Date.now() - Date.parse(persisted.cache.fetchedAt);

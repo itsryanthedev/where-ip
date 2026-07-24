@@ -36,12 +36,15 @@ export function TactilePressable({
   const [scale] = useState(() => new Animated.Value(1));
   const motionDisabled = isStatic || disabled || reduceMotion;
 
+  // Sync Animated.Value when motion is disabled mid-animation (external system).
+  /* eslint-disable react-you-might-not-need-an-effect/no-event-handler -- Animated.Value is an external store; reset when motion turns off. */
   useEffect(() => {
     if (motionDisabled) {
       scale.stopAnimation();
       scale.setValue(1);
     }
   }, [motionDisabled, scale]);
+  /* eslint-enable react-you-might-not-need-an-effect/no-event-handler */
 
   const animateScale = (toValue: number, duration: number) => {
     if (motionDisabled) {
