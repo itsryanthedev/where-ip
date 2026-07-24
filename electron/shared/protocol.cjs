@@ -31,16 +31,31 @@ function resolveProtocolPath(distRoot, requestUrl) {
     return { error: 'Credentials are not allowed' };
   }
 
+  // Reject traversal markers in the raw URL before the parser collapses them.
+  const rawPathAndQuery = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  if (
+    rawPathAndQuery.includes('\\') ||
+    rawPathAndQuery.includes('\0') ||
+    /(^|\/|\\|%2f|%5c)(\.\.|%2e%2e)(\/|\\|%2f|%5c|$)/i.test(
+      requestUrl.slice(requestUrl.indexOf(parsed.hostname) + parsed.hostname.length),
+    )
+  ) {
+    return { error: 'Path traversal is not allowed' };
+  }
+
   const decodedPath = decodeURIComponent(parsed.pathname || '/');
+  if (decodedPath.includes('\0') || decodedPath.includes('\\')) {
+    return { error: 'Path traversal is not allowed' };
+  }
+
   const relativePath =
     decodedPath === '/' || decodedPath === ''
       ? 'index.html'
       : decodedPath.replace(/^\/+/, '');
 
   if (
-    relativePath.includes('\0') ||
     path.isAbsolute(relativePath) ||
-    relativePath.split(/[/\\]/).includes('..')
+    relativePath.split(/[/\\]/).some((segment) => segment === '..')
   ) {
     return { error: 'Path traversal is not allowed' };
   }

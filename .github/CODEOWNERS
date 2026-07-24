@@ -11,3 +11,4 @@
 /pnpm-lock.yaml @itsryanthedev
 /SECURITY.md @itsryanthedev
 /scripts/check-secrets.mjs @itsryanthedev
+/scripts/package-desktop.mjs @itsryanthedev

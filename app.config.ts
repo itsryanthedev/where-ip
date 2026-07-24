@@ -1,14 +1,4 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
-function readPackageVersion(): string {
-  const packageJsonPath = join(__dirname, 'package.json');
-  const packageJson = JSON.parse(
-    readFileSync(packageJsonPath, 'utf8'),
-  ) as { version: string };
-  return packageJson.version;
-}
 
 /**
  * Normalize EXPO_WEB_BASE_URL for Expo experiments.baseUrl.
@@ -26,6 +16,14 @@ function resolveWebBaseUrl(rawValue: string | undefined): string {
   return withLeadingSlash.endsWith('/')
     ? withLeadingSlash.slice(0, -1)
     : withLeadingSlash;
+}
+
+function readPackageVersion(): string {
+  // Expo evaluates app.config with CommonJS interop; avoid node: builtins so
+  // the app TypeScript project does not need @types/node.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const packageJson = require('./package.json') as { version: string };
+  return packageJson.version;
 }
 
 export default ({ config }: ConfigContext): ExpoConfig => {
