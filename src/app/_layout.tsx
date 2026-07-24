@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import Head from 'expo-router/head';
 import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
