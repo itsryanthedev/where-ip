@@ -40,7 +40,7 @@ export function ProviderCard({
   const [showPolicies, setShowPolicies] = useState(false);
 
   const togglePolicies = () => {
-    if (reduceMotion === false) {
+    if (!reduceMotion) {
       LayoutAnimation.configureNext({
         duration: motion.duration.popover,
         update: {

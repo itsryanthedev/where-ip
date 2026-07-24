@@ -1,34 +1,57 @@
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { AccessibilityInfo } from 'react-native';
 
-export function useReducedMotion() {
-  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
+let reduceMotionEnabled = false;
+let initialized = false;
+const listeners = new Set<() => void>();
 
-  useEffect(() => {
-    let active = true;
+function emit() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
 
-    void AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => {
-        if (active) {
-          setReduceMotion(enabled);
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setReduceMotion(false);
-        }
-      });
+function ensureInitialized() {
+  if (initialized) {
+    return;
+  }
 
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion,
-    );
+  initialized = true;
 
-    return () => {
-      active = false;
-      subscription?.remove();
-    };
-  }, []);
+  void AccessibilityInfo.isReduceMotionEnabled()
+    .then((enabled) => {
+      if (reduceMotionEnabled !== enabled) {
+        reduceMotionEnabled = enabled;
+        emit();
+      }
+    })
+    .catch(() => {
+      // Keep the conservative default of false when the platform call fails.
+    });
 
-  return reduceMotion;
+  AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
+    reduceMotionEnabled = enabled;
+    emit();
+  });
+}
+
+function subscribe(onStoreChange: () => void) {
+  ensureInitialized();
+  listeners.add(onStoreChange);
+  return () => {
+    listeners.delete(onStoreChange);
+  };
+}
+
+function getSnapshot() {
+  ensureInitialized();
+  return reduceMotionEnabled;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+export function useReducedMotion(): boolean {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

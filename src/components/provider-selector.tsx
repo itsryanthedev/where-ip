@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Animated,
   Easing,
@@ -51,11 +51,16 @@ export function ProviderSelector({
   );
   const popoverOpen = menuOpen || policiesOpen;
   const popoverTop = switchTarget ? 69 : 50;
+  const chevronRotation = chevronProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
 
-  useEffect(() => {
-    const toValue = menuOpen ? 1 : 0;
+  const animateChevron = (open: boolean) => {
+    const toValue = open ? 1 : 0;
+    chevronProgress.stopAnimation();
 
-    if (reduceMotion !== false) {
+    if (reduceMotion) {
       chevronProgress.setValue(toValue);
       return;
     }
@@ -66,21 +71,17 @@ export function ProviderSelector({
       easing: Easing.bezier(...motion.easing.inOut),
       useNativeDriver: Platform.OS !== 'web',
     }).start();
-  }, [chevronProgress, menuOpen, reduceMotion]);
+  };
+
+  const setMenuVisible = (open: boolean) => {
+    setMenuOpen(open);
+    animateChevron(open);
+  };
 
   const selectProvider = (providerId: ProviderId) => {
     onSelect(providerId);
-    setMenuOpen(false);
+    setMenuVisible(false);
   };
-
-  const chevronRotation = useMemo(
-    () =>
-      chevronProgress.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '180deg'],
-      }),
-    [chevronProgress],
-  );
 
   return (
     <View style={[styles.container, { zIndex: popoverOpen ? 20 : 0 }]}>
@@ -93,7 +94,7 @@ export function ProviderSelector({
           aria-expanded={menuOpen}
           onPress={() => {
             setPoliciesOpen(false);
-            setMenuOpen((visible) => !visible);
+            setMenuVisible(!menuOpen);
           }}
           style={({ pressed }) => [
             styles.trigger,
@@ -128,7 +129,7 @@ export function ProviderSelector({
           accessibilityState={{ expanded: policiesOpen }}
           aria-expanded={policiesOpen}
           onPress={() => {
-            setMenuOpen(false);
+            setMenuVisible(false);
             setPoliciesOpen((visible) => !visible);
           }}
           hitSlop={4}
@@ -177,7 +178,7 @@ export function ProviderSelector({
           duration={motion.duration.popover}
           fromScale={motion.scale.surfaceEnter}
           fromTranslateY={motion.offset.popover}
-          onAccessibilityEscape={() => setMenuOpen(false)}
+          onAccessibilityEscape={() => setMenuVisible(false)}
           style={[
             styles.menu,
             {

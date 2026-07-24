@@ -31,7 +31,7 @@ export function DisclosureDialog() {
 
   return (
     <Modal
-      animationType={reduceMotion === true ? 'none' : 'fade'}
+      animationType={reduceMotion ? 'none' : 'fade'}
       transparent
       visible={acknowledgementRequired}
       onRequestClose={() => undefined}

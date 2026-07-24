@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { Link, Stack } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -29,6 +29,7 @@ import {
   spacing,
 } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useCooldownRemainingMs } from '@/hooks/use-cooldown-remaining-ms';
 import { useWhereIp } from '@/providers/where-ip-provider';
 import type { ProviderId } from '@/types/ip';
 import {
@@ -36,6 +37,30 @@ import {
   formatLocation,
   formatLookupTime,
 } from '@/utils/ip';
+
+function HomeHeaderAboutButton() {
+  const colors = useAppColors();
+
+  return (
+    <Link href="/about" asChild>
+      <TactilePressable
+        accessibilityRole="button"
+        accessibilityLabel="About and privacy"
+        style={({ pressed }) => [
+          styles.headerButton,
+          {
+            backgroundColor: pressed
+              ? colors.accentSoft
+              : 'transparent',
+            opacity: pressed ? 0.9 : 1,
+          },
+        ]}
+      >
+        <InfoIcon color={colors.accent} size={25} />
+      </TactilePressable>
+    </Link>
+  );
+}
 
 export function Home() {
   const colors = useAppColors();
@@ -50,14 +75,27 @@ export function Home() {
     setPreferredProvider,
     providerSwitchTarget,
     providerSwitchRefreshing,
-    providerSwitchRemainingMs,
-    cooldownRemainingMs,
     refresh,
   } = useWhereIp();
+  const cooldownRemainingMs = useCooldownRemainingMs(result?.fetchedAt);
+  const providerSwitchRemainingMs = providerSwitchTarget
+    ? cooldownRemainingMs
+    : 0;
   const [copied, setCopied] = useState(false);
+  const copiedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isCompact = width < 620;
   const isLoading = status === 'loading' || status === 'refreshing';
   const provider = result ? getProvider(result.providerId) : null;
+
+  useEffect(() => {
+    return () => {
+      if (copiedResetTimerRef.current) {
+        clearTimeout(copiedResetTimerRef.current);
+      }
+    };
+  }, []);
 
   const copyIp = async () => {
     if (!result) {
@@ -68,7 +106,13 @@ export function Home() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
+    if (copiedResetTimerRef.current) {
+      clearTimeout(copiedResetTimerRef.current);
+    }
+    copiedResetTimerRef.current = setTimeout(() => {
+      setCopied(false);
+      copiedResetTimerRef.current = null;
+    }, 1800);
   };
 
   const shareResult = async () => {
@@ -97,25 +141,7 @@ export function Home() {
       <Stack.Screen
         options={{
           title: 'WhereIP',
-          headerRight: () => (
-            <Link href="/about" asChild>
-              <TactilePressable
-                accessibilityRole="button"
-                accessibilityLabel="About and privacy"
-                style={({ pressed }) => [
-                  styles.headerButton,
-                  {
-                    backgroundColor: pressed
-                      ? colors.accentSoft
-                      : 'transparent',
-                    opacity: pressed ? 0.9 : 1,
-                  },
-                ]}
-              >
-                <InfoIcon color={colors.accent} size={25} />
-              </TactilePressable>
-            </Link>
-          ),
+          headerRight: () => <HomeHeaderAboutButton />,
         }}
       />
       <ScrollView

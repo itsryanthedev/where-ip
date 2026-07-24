@@ -36,7 +36,7 @@ export function RevealView({
   );
 
   useEffect(() => {
-    if (reduceMotion === null || hasAnimated.current) {
+    if (hasAnimated.current) {
       return;
     }
 

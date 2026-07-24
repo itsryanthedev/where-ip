@@ -26,8 +26,6 @@ type TactilePressableProps = Omit<PressableProps, 'style'> & {
 
 export function TactilePressable({
   disabled,
-  onHoverIn,
-  onHoverOut,
   onPressIn,
   onPressOut,
   static: isStatic = false,
@@ -36,9 +34,7 @@ export function TactilePressable({
 }: TactilePressableProps) {
   const reduceMotion = useReducedMotion();
   const [scale] = useState(() => new Animated.Value(1));
-  const [pressed, setPressed] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const motionDisabled = isStatic || disabled || reduceMotion !== false;
+  const motionDisabled = isStatic || disabled || reduceMotion;
 
   useEffect(() => {
     if (motionDisabled) {
@@ -62,42 +58,23 @@ export function TactilePressable({
   };
 
   const handlePressIn: NonNullable<PressableProps['onPressIn']> = (event) => {
-    setPressed(true);
     animateScale(motion.scale.pressed, motion.duration.pressIn);
     onPressIn?.(event);
   };
 
   const handlePressOut: NonNullable<PressableProps['onPressOut']> = (event) => {
-    setPressed(false);
     animateScale(1, motion.duration.pressOut);
     onPressOut?.(event);
   };
-
-  const handleHoverIn: NonNullable<PressableProps['onHoverIn']> = (event) => {
-    setHovered(true);
-    onHoverIn?.(event);
-  };
-
-  const handleHoverOut: NonNullable<PressableProps['onHoverOut']> = (event) => {
-    setHovered(false);
-    onHoverOut?.(event);
-  };
-
-  const resolvedStyle =
-    typeof style === 'function'
-      ? style({ pressed, hovered } as PressableStateCallbackType)
-      : style;
 
   return (
     <AnimatedPressable
       {...props}
       disabled={disabled}
-      onHoverIn={handleHoverIn}
-      onHoverOut={handleHoverOut}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      style={[
-        resolvedStyle,
+      style={(state) => [
+        typeof style === 'function' ? style(state) : style,
         motionDisabled ? null : { transform: [{ scale }] },
       ]}
     />

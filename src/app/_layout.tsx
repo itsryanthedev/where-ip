@@ -1,9 +1,9 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import Head from 'expo-router/head';
 import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { DisclosureDialog } from '@/components/disclosure-dialog';
@@ -32,27 +32,30 @@ function RootNavigator() {
     }
   }, [isReady]);
 
+  const screenOptions = useMemo(
+    () => ({
+      headerBackButtonDisplayMode: 'minimal' as const,
+      headerShadowVisible: false,
+      headerStyle: {
+        backgroundColor: colors.background,
+      },
+      headerTitleStyle: {
+        fontWeight: '700' as const,
+      },
+      headerTintColor: colors.text,
+      contentStyle: {
+        backgroundColor: colors.background,
+      },
+    }),
+    [colors.background, colors.text],
+  );
+
   return (
     <ThemeProvider
       value={effectiveColorScheme === 'dark' ? DarkTheme : DefaultTheme}
     >
       <StatusBar style={effectiveColorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack
-        screenOptions={{
-          headerBackButtonDisplayMode: 'minimal',
-          headerShadowVisible: false,
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTitleStyle: {
-            fontWeight: '700',
-          },
-          headerTintColor: colors.text,
-          contentStyle: {
-            backgroundColor: colors.background,
-          },
-        }}
-      >
+      <Stack screenOptions={screenOptions}>
         <Stack.Screen name="index" options={{ title: 'WhereIP' }} />
         <Stack.Screen
           name="about"
