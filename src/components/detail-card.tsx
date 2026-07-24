@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { spacing } from '@/constants/theme';
+import { radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 
 type DetailCardProps = {
@@ -26,7 +26,7 @@ export function DetailCard({
         {
           backgroundColor: colors.surface,
           borderColor: colors.border,
-          boxShadow: `0 8px 24px ${colors.shadow}`,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
         },
       ]}
     >
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     minWidth: 220,
     minHeight: 132,
     borderWidth: 1,
-    borderRadius: 20,
+    borderRadius: radii.card,
     borderCurve: 'continuous',
     padding: spacing.lg,
     gap: spacing.sm,

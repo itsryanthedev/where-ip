@@ -1,5 +1,13 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { ExternalLink } from '@/components/external-link';
 import {
@@ -7,9 +15,12 @@ import {
   ChevronDownIcon,
   InfoIcon,
 } from '@/components/icons';
+import { RevealView } from '@/components/reveal-view';
+import { TactilePressable } from '@/components/tactile-pressable';
 import { PROVIDERS } from '@/constants/providers';
-import { spacing } from '@/constants/theme';
+import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import type { ProviderId } from '@/types/ip';
 
 type ProviderSelectorProps = {
@@ -28,8 +39,10 @@ export function ProviderSelector({
   providerSwitchRemainingMs = 0,
 }: ProviderSelectorProps) {
   const colors = useAppColors();
+  const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [policiesOpen, setPoliciesOpen] = useState(false);
+  const [chevronProgress] = useState(() => new Animated.Value(0));
   const selected = PROVIDERS.find(
     (provider) => provider.id === selectedProvider,
   );
@@ -39,15 +52,40 @@ export function ProviderSelector({
   const popoverOpen = menuOpen || policiesOpen;
   const popoverTop = switchTarget ? 69 : 50;
 
+  useEffect(() => {
+    const toValue = menuOpen ? 1 : 0;
+
+    if (reduceMotion !== false) {
+      chevronProgress.setValue(toValue);
+      return;
+    }
+
+    Animated.timing(chevronProgress, {
+      toValue,
+      duration: motion.duration.toggle,
+      easing: Easing.bezier(...motion.easing.inOut),
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  }, [chevronProgress, menuOpen, reduceMotion]);
+
   const selectProvider = (providerId: ProviderId) => {
     onSelect(providerId);
     setMenuOpen(false);
   };
 
+  const chevronRotation = useMemo(
+    () =>
+      chevronProgress.interpolate({
+        inputRange: [0, 1],
+        outputRange: ['0deg', '180deg'],
+      }),
+    [chevronProgress],
+  );
+
   return (
     <View style={[styles.container, { zIndex: popoverOpen ? 20 : 0 }]}>
       <View style={styles.controls}>
-        <Pressable
+        <TactilePressable
           accessibilityRole="button"
           accessibilityLabel={`Provider, ${selected?.name}`}
           accessibilityHint="Opens the provider selector"
@@ -60,9 +98,12 @@ export function ProviderSelector({
           style={({ pressed }) => [
             styles.trigger,
             {
-              backgroundColor: colors.surfaceRaised,
+              backgroundColor:
+                menuOpen || pressed
+                  ? colors.accentSoft
+                  : colors.surfaceRaised,
               borderColor: menuOpen ? colors.accent : colors.border,
-              opacity: pressed ? 0.72 : 1,
+              opacity: pressed ? 0.9 : 1,
             },
           ]}
         >
@@ -75,16 +116,12 @@ export function ProviderSelector({
           >
             {selected?.name}
           </Text>
-          <View
-            style={{
-              transform: [{ rotate: menuOpen ? '180deg' : '0deg' }],
-            }}
-          >
+          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
             <ChevronDownIcon color={colors.accent} />
-          </View>
-        </Pressable>
+          </Animated.View>
+        </TactilePressable>
 
-        <Pressable
+        <TactilePressable
           accessibilityRole="button"
           accessibilityLabel={`Privacy and terms for ${selected?.name}`}
           accessibilityHint="Shows official third-party policy links"
@@ -100,14 +137,16 @@ export function ProviderSelector({
             {
               backgroundColor: policiesOpen
                 ? colors.accentSoft
-                : colors.surfaceRaised,
+                : pressed
+                  ? colors.backgroundAccent
+                  : colors.surfaceRaised,
               borderColor: policiesOpen ? colors.accent : colors.border,
-              opacity: pressed ? 0.65 : 1,
+              opacity: pressed ? 0.9 : 1,
             },
           ]}
         >
           <InfoIcon color={colors.accent} size={19} />
-        </Pressable>
+        </TactilePressable>
       </View>
 
       {switchTarget ? (
@@ -132,9 +171,12 @@ export function ProviderSelector({
       ) : null}
 
       {menuOpen ? (
-        <View
+        <RevealView
           accessibilityRole="radiogroup"
           accessibilityLabel="Preferred IP information provider"
+          duration={motion.duration.popover}
+          fromScale={motion.scale.surfaceEnter}
+          fromTranslateY={motion.offset.popover}
           onAccessibilityEscape={() => setMenuOpen(false)}
           style={[
             styles.menu,
@@ -142,7 +184,7 @@ export function ProviderSelector({
               top: popoverTop,
               backgroundColor: colors.surface,
               borderColor: colors.border,
-              boxShadow: `0 12px 32px ${colors.shadow}`,
+              boxShadow: `${shadows.popover} ${colors.shadow}`,
             },
           ]}
         >
@@ -182,12 +224,15 @@ export function ProviderSelector({
               </Pressable>
             );
           })}
-        </View>
+        </RevealView>
       ) : null}
 
       {policiesOpen && selected ? (
-        <View
+        <RevealView
           accessibilityLiveRegion="polite"
+          duration={motion.duration.popover}
+          fromScale={motion.scale.surfaceEnter}
+          fromTranslateY={motion.offset.popover}
           onAccessibilityEscape={() => setPoliciesOpen(false)}
           style={[
             styles.policyPopover,
@@ -195,7 +240,7 @@ export function ProviderSelector({
               top: popoverTop,
               backgroundColor: colors.surface,
               borderColor: colors.border,
-              boxShadow: `0 12px 32px ${colors.shadow}`,
+              boxShadow: `${shadows.popover} ${colors.shadow}`,
             },
           ]}
         >
@@ -226,7 +271,7 @@ export function ProviderSelector({
               label="API documentation"
             />
           </View>
-        </View>
+        </RevealView>
       ) : null}
     </View>
   );
@@ -250,7 +295,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     borderWidth: 1,
-    borderRadius: 13,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -261,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: 13,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
   },
   triggerLabel: {
@@ -283,6 +328,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderCurve: 'continuous',
     overflow: 'hidden',
+    transformOrigin: 'top right',
   },
   option: {
     minHeight: 46,
@@ -308,6 +354,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '600',
+    fontVariant: ['tabular-nums'],
     textAlign: 'right',
   },
   policyPopover: {
@@ -320,6 +367,7 @@ const styles = StyleSheet.create({
     borderCurve: 'continuous',
     padding: spacing.lg,
     gap: spacing.sm,
+    transformOrigin: 'top right',
   },
   policyTitle: {
     fontSize: 16,

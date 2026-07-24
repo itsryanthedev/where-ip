@@ -1,19 +1,19 @@
 import Constants from 'expo-constants';
 import { Link, Stack } from 'expo-router';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppLogo } from '@/components/app-logo';
 import { ExternalLink } from '@/components/external-link';
 import { ProviderCard } from '@/components/provider-card';
+import { TactilePressable } from '@/components/tactile-pressable';
 import { APP_LINKS } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
-import { contentMaxWidth, spacing } from '@/constants/theme';
+import {
+  contentMaxWidth,
+  radii,
+  shadows,
+  spacing,
+} from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useWhereIp } from '@/providers/where-ip-provider';
 
@@ -60,20 +60,23 @@ export function About() {
               continuous polling.
             </Text>
             <Link href="/privacy" asChild>
-              <Pressable
+              <TactilePressable
                 accessibilityRole="link"
                 style={({ pressed }) => [
                   styles.inlineRouteLink,
                   {
+                    backgroundColor: pressed
+                      ? colors.backgroundAccent
+                      : colors.surfaceRaised,
                     borderColor: colors.border,
-                    opacity: pressed ? 0.65 : 1,
+                    opacity: pressed ? 0.9 : 1,
                   },
                 ]}
               >
                 <Text style={[styles.inlineRouteLabel, { color: colors.accent }]}>
                   Read the complete WhereIP privacy policy
                 </Text>
-              </Pressable>
+              </TactilePressable>
             </Link>
           </Section>
 
@@ -153,6 +156,7 @@ function Section({
         {
           backgroundColor: colors.surface,
           borderColor: colors.border,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
         },
       ]}
     >
@@ -196,7 +200,7 @@ const styles = StyleSheet.create({
   },
   section: {
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: radii.section,
     borderCurve: 'continuous',
     padding: spacing.xl,
     gap: spacing.md,
@@ -205,6 +209,7 @@ const styles = StyleSheet.create({
     fontSize: 21,
     lineHeight: 27,
     fontWeight: '800',
+    letterSpacing: -0.25,
   },
   body: {
     fontSize: 15,
@@ -215,7 +220,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,

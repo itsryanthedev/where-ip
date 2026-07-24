@@ -1,11 +1,28 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  LayoutAnimation,
+  Platform,
+  StyleSheet,
+  Text,
+  UIManager,
+  View,
+} from 'react-native';
 
 import { ExternalLink } from '@/components/external-link';
 import { InfoIcon } from '@/components/icons';
-import { spacing } from '@/constants/theme';
+import { RevealView } from '@/components/reveal-view';
+import { TactilePressable } from '@/components/tactile-pressable';
+import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import type { ProviderDefinition } from '@/types/ip';
+
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type ProviderCardProps = {
   provider: ProviderDefinition;
@@ -19,7 +36,21 @@ export function ProviderCard({
   onSelect,
 }: ProviderCardProps) {
   const colors = useAppColors();
+  const reduceMotion = useReducedMotion();
   const [showPolicies, setShowPolicies] = useState(false);
+
+  const togglePolicies = () => {
+    if (reduceMotion === false) {
+      LayoutAnimation.configureNext({
+        duration: motion.duration.popover,
+        update: {
+          type: LayoutAnimation.Types.easeOut,
+        },
+      });
+    }
+
+    setShowPolicies((visible) => !visible);
+  };
 
   return (
     <View
@@ -28,10 +59,13 @@ export function ProviderCard({
         {
           backgroundColor: selected ? colors.accentSoft : colors.surface,
           borderColor: selected ? colors.accent : colors.border,
+          boxShadow: selected
+            ? `${shadows.card} ${colors.shadow}`
+            : `${shadows.control} ${colors.shadow}`,
         },
       ]}
     >
-      <Pressable
+      <TactilePressable
         accessibilityRole="radio"
         accessibilityState={{ checked: selected }}
         aria-checked={selected}
@@ -39,7 +73,10 @@ export function ProviderCard({
         onPress={onSelect}
         style={({ pressed }) => [
           styles.selection,
-          { opacity: pressed ? 0.72 : 1 },
+          {
+            backgroundColor: pressed ? colors.backgroundAccent : 'transparent',
+            opacity: pressed ? 0.9 : 1,
+          },
         ]}
       >
         <View
@@ -60,19 +97,19 @@ export function ProviderCard({
             {provider.shortDescription}
           </Text>
         </View>
-      </Pressable>
+      </TactilePressable>
 
-      <Pressable
+      <TactilePressable
         accessibilityRole="button"
         accessibilityLabel={`Privacy information for ${provider.name}`}
         accessibilityState={{ expanded: showPolicies }}
         accessibilityHint="Shows links to the provider's privacy policy and terms"
-        onPress={() => setShowPolicies((visible) => !visible)}
+        onPress={togglePolicies}
         style={({ pressed }) => [
           styles.infoButton,
           {
             borderColor: colors.border,
-            opacity: pressed ? 0.65 : 1,
+            opacity: pressed ? 0.9 : 1,
           },
         ]}
       >
@@ -80,11 +117,13 @@ export function ProviderCard({
         <Text style={[styles.infoLabel, { color: colors.accent }]}>
           Privacy & terms
         </Text>
-      </Pressable>
+      </TactilePressable>
 
       {showPolicies ? (
-        <View
+        <RevealView
           accessibilityLiveRegion="polite"
+          duration={motion.duration.popover}
+          fromTranslateY={motion.offset.popover}
           style={[
             styles.policyPanel,
             { borderTopColor: colors.border },
@@ -107,7 +146,7 @@ export function ProviderCard({
               label="API documentation"
             />
           </View>
-        </View>
+        </RevealView>
       ) : null}
     </View>
   );
@@ -116,7 +155,7 @@ export function ProviderCard({
 const styles = StyleSheet.create({
   card: {
     borderWidth: 1,
-    borderRadius: 18,
+    borderRadius: radii.card,
     borderCurve: 'continuous',
     overflow: 'hidden',
   },

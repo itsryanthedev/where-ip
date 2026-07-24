@@ -54,5 +54,43 @@ export const spacing = {
   hero: 48,
 } as const;
 
-export const contentMaxWidth = 960;
+export const radii = {
+  control: 14,
+  card: 20,
+  section: 22,
+  hero: 28,
+  pill: 999,
+} as const;
 
+export const shadows = {
+  control: '0 3px 10px',
+  card: '0 8px 24px',
+  hero: '0 16px 48px',
+  dialog: '0 20px 60px',
+  popover: '0 12px 32px',
+} as const;
+
+export const motion = {
+  duration: {
+    pressIn: 100,
+    pressOut: 150,
+    toggle: 160,
+    popover: 180,
+    content: 220,
+    dialog: 240,
+  },
+  scale: {
+    pressed: 0.96,
+    surfaceEnter: 0.97,
+  },
+  offset: {
+    popover: -4,
+    content: 6,
+  },
+  easing: {
+    out: [0.23, 1, 0.32, 1],
+    inOut: [0.77, 0, 0.175, 1],
+  },
+} as const;
+
+export const contentMaxWidth = 960;

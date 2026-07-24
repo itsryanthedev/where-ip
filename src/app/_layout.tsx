@@ -44,6 +44,9 @@ function RootNavigator() {
           headerStyle: {
             backgroundColor: colors.background,
           },
+          headerTitleStyle: {
+            fontWeight: '700',
+          },
           headerTintColor: colors.text,
           contentStyle: {
             backgroundColor: colors.background,
@@ -73,6 +76,12 @@ export default function RootLayout() {
       {process.env.EXPO_OS === 'web' ? (
         <Head>
           <title>WhereIP — Your public connection, clearly</title>
+          <style>{`
+            html {
+              -webkit-font-smoothing: antialiased;
+              -moz-osx-font-smoothing: grayscale;
+            }
+          `}</style>
           <meta
             name="description"
             content="A free, open-source view of your public IP and approximate network location."

@@ -64,7 +64,12 @@ export function RefreshCountdown({
             transform={`rotate(-90 ${size / 2} ${size / 2})`}
           />
         </Svg>
-        <View style={styles.ringContent}>
+        <View
+          style={[
+            styles.ringContent,
+            { backgroundColor: colors.surfaceRaised },
+          ]}
+        >
           {loading ? (
             <ActivityIndicator color={colors.accent} size="small" />
           ) : (
@@ -124,6 +129,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   ringContent: {
+    width: size - strokeWidth * 2,
+    height: size - strokeWidth * 2,
+    borderRadius: (size - strokeWidth * 2) / 2,
     alignItems: 'center',
     justifyContent: 'center',
   },

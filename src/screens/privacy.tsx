@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ExternalLink } from '@/components/external-link';
 import { APP_LINKS } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
-import { spacing } from '@/constants/theme';
+import { radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 
 export function Privacy() {
@@ -29,7 +29,7 @@ export function Privacy() {
             Effective July 24, 2026
           </Text>
 
-          <PolicySection title="The short version">
+          <PolicySection featured title="The short version">
             WhereIP does not operate a backend, create accounts, show ads, run
             analytics, track you, or request GPS access. The app asks a
             third-party IP information provider for your public network
@@ -60,6 +60,7 @@ export function Privacy() {
                   {
                     backgroundColor: colors.surface,
                     borderColor: colors.border,
+                    boxShadow: `${shadows.control} ${colors.shadow}`,
                   },
                 ]}
               >
@@ -125,13 +126,25 @@ export function Privacy() {
 function PolicySection({
   title,
   children,
+  featured = false,
 }: {
   title: string;
   children: React.ReactNode;
+  featured?: boolean;
 }) {
   const colors = useAppColors();
   return (
-    <View style={styles.section}>
+    <View
+      style={[
+        styles.section,
+        featured && styles.featuredSection,
+        featured && {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
+        },
+      ]}
+    >
       <Text accessibilityRole="header" style={[styles.heading, { color: colors.text }]}>
         {title}
       </Text>
@@ -168,10 +181,17 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing.sm,
   },
+  featuredSection: {
+    borderWidth: 1,
+    borderRadius: radii.section,
+    borderCurve: 'continuous',
+    padding: spacing.xl,
+  },
   heading: {
     fontSize: 20,
     lineHeight: 26,
     fontWeight: '800',
+    letterSpacing: -0.2,
   },
   body: {
     fontSize: 15,
@@ -182,7 +202,7 @@ const styles = StyleSheet.create({
   },
   providerPolicy: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,

@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   type ViewStyle,
 } from 'react-native';
 
-import { spacing } from '@/constants/theme';
+import { TactilePressable } from '@/components/tactile-pressable';
+import { radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 
 type ActionButtonProps = {
@@ -43,7 +43,7 @@ export function ActionButton({
     variant === 'primary' ? '#FFFFFF' : colors.accent;
 
   return (
-    <Pressable
+    <TactilePressable
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       accessibilityHint={accessibilityHint}
@@ -52,9 +52,23 @@ export function ActionButton({
       style={({ pressed }) => [
         styles.base,
         {
-          backgroundColor,
-          borderColor: variant === 'plain' ? colors.border : backgroundColor,
-          opacity: isDisabled ? 0.52 : pressed ? 0.8 : 1,
+          backgroundColor:
+            pressed && !isDisabled
+              ? variant === 'primary'
+                ? colors.accentPressed
+                : colors.backgroundAccent
+              : backgroundColor,
+          borderColor:
+            variant === 'plain'
+              ? colors.border
+              : pressed && !isDisabled && variant === 'primary'
+                ? colors.accentPressed
+                : backgroundColor,
+          boxShadow:
+            variant === 'plain'
+              ? undefined
+              : `${shadows.control} ${colors.shadow}`,
+          opacity: isDisabled ? 0.52 : pressed ? 0.9 : 1,
         },
         style,
       ]}
@@ -65,14 +79,14 @@ export function ActionButton({
         icon
       )}
       <Text style={[styles.label, { color: foregroundColor }]}>{label}</Text>
-    </Pressable>
+    </TactilePressable>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
     minHeight: 48,
-    borderRadius: 14,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     borderWidth: 1,
     paddingHorizontal: spacing.lg,
@@ -88,4 +102,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-

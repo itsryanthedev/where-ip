@@ -4,7 +4,6 @@ import { Link, Stack } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   Share,
   StyleSheet,
@@ -19,8 +18,16 @@ import { DetailCard } from '@/components/detail-card';
 import { CopyIcon, InfoIcon } from '@/components/icons';
 import { ProviderSelector } from '@/components/provider-selector';
 import { RefreshCountdown } from '@/components/refresh-countdown';
+import { RevealView } from '@/components/reveal-view';
+import { TactilePressable } from '@/components/tactile-pressable';
 import { getProvider } from '@/constants/providers';
-import { contentMaxWidth, spacing } from '@/constants/theme';
+import {
+  contentMaxWidth,
+  motion,
+  radii,
+  shadows,
+  spacing,
+} from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
 import { useWhereIp } from '@/providers/where-ip-provider';
 import type { ProviderId } from '@/types/ip';
@@ -92,14 +99,21 @@ export function Home() {
           title: 'WhereIP',
           headerRight: () => (
             <Link href="/about" asChild>
-              <Pressable
+              <TactilePressable
                 accessibilityRole="button"
                 accessibilityLabel="About and privacy"
-                hitSlop={12}
-                style={({ pressed }) => ({ opacity: pressed ? 0.55 : 1 })}
+                style={({ pressed }) => [
+                  styles.headerButton,
+                  {
+                    backgroundColor: pressed
+                      ? colors.accentSoft
+                      : 'transparent',
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                ]}
               >
                 <InfoIcon color={colors.accent} size={25} />
-              </Pressable>
+              </TactilePressable>
             </Link>
           ),
         }}
@@ -132,7 +146,12 @@ export function Home() {
                 accessibilityRole="header"
                 style={[
                   styles.heroTitle,
-                  { color: colors.text, fontSize: isCompact ? 30 : 38 },
+                  {
+                    color: colors.text,
+                    fontSize: isCompact ? 30 : 38,
+                    letterSpacing: isCompact ? -0.7 : -1.1,
+                    lineHeight: isCompact ? 36 : 44,
+                  },
                 ]}
               >
                 Know what the internet sees.
@@ -153,6 +172,7 @@ export function Home() {
                 {
                   backgroundColor: colors.surface,
                   borderColor: colors.border,
+                  boxShadow: `${shadows.card} ${colors.shadow}`,
                 },
               ]}
             >
@@ -166,13 +186,15 @@ export function Home() {
             </View>
           ) : result ? (
             <>
-              <View
+              <RevealView
+                duration={motion.duration.content}
+                fromTranslateY={motion.offset.content}
                 style={[
                   styles.ipCard,
                   {
                     backgroundColor: colors.surface,
                     borderColor: colors.border,
-                    boxShadow: `0 16px 48px ${colors.shadow}`,
+                    boxShadow: `${shadows.hero} ${colors.shadow}`,
                   },
                 ]}
               >
@@ -225,6 +247,7 @@ export function Home() {
                     {
                       color: colors.text,
                       fontSize: isCompact ? 29 : 42,
+                      lineHeight: isCompact ? 38 : 52,
                     },
                   ]}
                 >
@@ -266,11 +289,13 @@ export function Home() {
                     providerSwitchRemainingMs={providerSwitchRemainingMs}
                   />
                 </View>
-              </View>
+              </RevealView>
 
               {fallbackFrom ? (
-                <View
+                <RevealView
                   accessibilityLiveRegion="polite"
+                  duration={motion.duration.popover}
+                  fromTranslateY={motion.offset.popover}
                   style={[
                     styles.notice,
                     {
@@ -283,12 +308,14 @@ export function Home() {
                     {getProvider(fallbackFrom).name} was unavailable, so{' '}
                     {provider?.name} supplied this result.
                   </Text>
-                </View>
+                </RevealView>
               ) : null}
 
               {errorMessage ? (
-                <View
+                <RevealView
                   accessibilityLiveRegion="assertive"
+                  duration={motion.duration.popover}
+                  fromTranslateY={motion.offset.popover}
                   style={[
                     styles.notice,
                     {
@@ -300,10 +327,15 @@ export function Home() {
                   <Text selectable style={[styles.noticeText, { color: colors.danger }]}>
                     {errorMessage}
                   </Text>
-                </View>
+                </RevealView>
               ) : null}
 
-              <View style={styles.detailGrid}>
+              <RevealView
+                delay={40}
+                duration={motion.duration.content}
+                fromTranslateY={motion.offset.content}
+                style={styles.detailGrid}
+              >
                 <DetailCard
                   label="Approximate location"
                   supportingText="Estimated from your public IP — never GPS."
@@ -342,14 +374,18 @@ export function Home() {
                       : 'Unavailable'
                   }
                 />
-              </View>
+              </RevealView>
 
-              <View
+              <RevealView
+                delay={80}
+                duration={motion.duration.content}
+                fromTranslateY={motion.offset.content}
                 style={[
                   styles.refreshCard,
                   {
                     backgroundColor: colors.surface,
                     borderColor: colors.border,
+                    boxShadow: `${shadows.card} ${colors.shadow}`,
                   },
                 ]}
               >
@@ -358,7 +394,7 @@ export function Home() {
                   loading={isLoading}
                   onRefresh={() => void refresh()}
                 />
-              </View>
+              </RevealView>
             </>
           ) : (
             <View
@@ -394,6 +430,13 @@ export function Home() {
 }
 
 const styles = StyleSheet.create({
+  headerButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 22,
+  },
   scrollContent: {
     minHeight: '100%',
     paddingTop: spacing.xl,
@@ -436,9 +479,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
   },
   heroTitle: {
-    lineHeight: 44,
     fontWeight: '800',
-    letterSpacing: -1.1,
   },
   heroDescription: {
     maxWidth: 620,
@@ -448,7 +489,7 @@ const styles = StyleSheet.create({
   loadingCard: {
     minHeight: 300,
     borderWidth: 1,
-    borderRadius: 24,
+    borderRadius: radii.section,
     borderCurve: 'continuous',
     padding: spacing.xl,
     alignItems: 'center',
@@ -470,7 +511,7 @@ const styles = StyleSheet.create({
   ipCard: {
     zIndex: 1,
     borderWidth: 1,
-    borderRadius: 28,
+    borderRadius: radii.hero,
     borderCurve: 'continuous',
     padding: spacing.xl,
     gap: spacing.md,
@@ -486,7 +527,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
-    borderRadius: 999,
+    borderRadius: radii.pill,
   },
   statusDot: {
     width: 8,
@@ -510,7 +551,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   ipAddress: {
-    lineHeight: 52,
     fontWeight: '800',
     letterSpacing: -1,
     fontVariant: ['tabular-nums'],
@@ -543,7 +583,7 @@ const styles = StyleSheet.create({
   },
   notice: {
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     padding: spacing.lg,
   },
@@ -559,7 +599,7 @@ const styles = StyleSheet.create({
   },
   refreshCard: {
     borderWidth: 1,
-    borderRadius: 22,
+    borderRadius: radii.section,
     borderCurve: 'continuous',
     padding: spacing.lg,
   },

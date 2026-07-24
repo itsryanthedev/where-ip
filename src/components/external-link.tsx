@@ -1,8 +1,9 @@
 import * as Linking from 'expo-linking';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 
 import { ExternalIcon } from '@/components/icons';
 import { spacing } from '@/constants/theme';
+import { TactilePressable } from '@/components/tactile-pressable';
 import { useAppColors } from '@/hooks/use-app-colors';
 
 type ExternalLinkProps = {
@@ -15,7 +16,7 @@ export function ExternalLink({ href, label, compact = false }: ExternalLinkProps
   const colors = useAppColors();
 
   return (
-    <Pressable
+    <TactilePressable
       accessibilityRole="link"
       accessibilityHint="Opens in your browser"
       onPress={() => void Linking.openURL(href)}
@@ -27,7 +28,7 @@ export function ExternalLink({ href, label, compact = false }: ExternalLinkProps
     >
       <Text style={[styles.label, { color: colors.accent }]}>{label}</Text>
       <ExternalIcon color={colors.accent} size={compact ? 15 : 17} />
-    </Pressable>
+    </TactilePressable>
   );
 }
 
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   compact: {
-    minHeight: 36,
+    minHeight: 44,
     paddingVertical: spacing.xs,
   },
   label: {
