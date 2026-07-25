@@ -35,6 +35,7 @@ import type { ProviderId } from '@/types/ip';
 import {
   countryCodeToFlag,
   formatLocation,
+  formatLocationMeta,
   formatLookupTime,
 } from '@/utils/ip';
 
@@ -83,7 +84,6 @@ export function Home() {
     ? cooldownRemainingMs
     : 0;
   const [copied, setCopied] = useState(false);
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
   const copiedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -393,6 +393,11 @@ export function Home() {
                 <DetailCard
                   label="Approximate location"
                   supportingText="Estimated from your public IP — never GPS."
+                  metaText={formatLocationMeta(
+                    result.postalCode,
+                    result.latitude,
+                    result.longitude,
+                  )}
                   value={formatLocation(
                     result.city,
                     result.region,
@@ -408,87 +413,40 @@ export function Home() {
                   }
                   value={result.organization ?? result.isp ?? 'Unavailable'}
                 />
+                <DetailCard
+                  label="Connection"
+                  supportingText="Internet Protocol version from the provider"
+                  value={`IPv${result.ipVersion}`}
+                />
               </RevealView>
-
-              <View style={styles.detailsToggleWrap}>
-                <TactilePressable
-                  accessibilityRole="button"
-                  accessibilityState={{ expanded: detailsExpanded }}
-                  accessibilityLabel={
-                    detailsExpanded
-                      ? 'Hide connection details'
-                      : 'Show more connection details'
-                  }
-                  onPress={() => setDetailsExpanded((open) => !open)}
-                  style={({ pressed }) => [
-                    styles.detailsToggle,
-                    {
-                      backgroundColor: pressed
-                        ? colors.accentSoft
-                        : colors.surfaceRaised,
-                      borderColor: colors.border,
-                      opacity: pressed ? 0.9 : 1,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[styles.detailsToggleLabel, { color: colors.accentText }]}
-                  >
-                    {detailsExpanded ? 'Hide details' : 'More details'}
-                  </Text>
-                </TactilePressable>
-              </View>
-
-              {detailsExpanded ? (
-                <RevealView
-                  duration={motion.duration.content}
-                  fromTranslateY={motion.offset.content}
-                  style={styles.detailGrid}
-                >
-                  <DetailCard
-                    label="Connection"
-                    supportingText="Internet Protocol version from the provider"
-                    value={`IPv${result.ipVersion}`}
-                  />
-                  <DetailCard
-                    label="Timezone"
-                    supportingText={
-                      result.postalCode
-                        ? `Postal area ${result.postalCode}`
-                        : undefined
-                    }
-                    value={result.timezone ?? 'Unavailable'}
-                  />
-                  <DetailCard
-                    label="Coordinates"
-                    supportingText="Approximate IP geolocation"
-                    value={
-                      result.latitude !== undefined &&
-                      result.longitude !== undefined
-                        ? `${result.latitude.toFixed(3)}, ${result.longitude.toFixed(3)}`
-                        : 'Unavailable'
-                    }
-                  />
-                </RevealView>
-              ) : null}
 
               <RevealView
                 duration={motion.duration.content}
                 fromTranslateY={motion.offset.content}
-                style={[
-                  styles.refreshCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    boxShadow: `${shadows.card} ${colors.shadow}`,
-                  },
-                ]}
+                style={styles.detailGrid}
               >
-                <RefreshCountdown
-                  cooldownRemainingMs={cooldownRemainingMs}
-                  loading={isLoading}
-                  onRefresh={() => void refresh()}
+                <DetailCard
+                  label="Timezone"
+                  supportingText="Local time zone for this approximate location"
+                  value={result.timezone ?? 'Unavailable'}
                 />
+                <View
+                  style={[
+                    styles.refreshCard,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      boxShadow: `${shadows.card} ${colors.shadow}`,
+                    },
+                  ]}
+                >
+                  <RefreshCountdown
+                    cooldownRemainingMs={cooldownRemainingMs}
+                    loading={isLoading}
+                    onRefresh={() => void refresh()}
+                    variant="card"
+                  />
+                </View>
               </RevealView>
             </>
           ) : (
@@ -705,26 +663,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.lg,
   },
-  detailsToggleWrap: {
-    alignItems: 'flex-start',
-  },
-  detailsToggle: {
-    minHeight: 44,
-    borderWidth: 1,
-    borderRadius: radii.control,
-    borderCurve: 'continuous',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    justifyContent: 'center',
-  },
-  detailsToggleLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: '700',
-  },
   refreshCard: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 280,
+    minWidth: 220,
+    minHeight: 132,
     borderWidth: 1,
-    borderRadius: radii.section,
+    borderRadius: radii.card,
     borderCurve: 'continuous',
     padding: spacing.lg,
   },

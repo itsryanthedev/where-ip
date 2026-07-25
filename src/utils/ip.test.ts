@@ -2,6 +2,7 @@ import {
   countryCodeToFlag,
   formatCountdown,
   formatLocation,
+  formatLocationMeta,
   inferIpVersion,
   isUsablePublicIp,
 } from '@/utils/ip';
@@ -60,6 +61,17 @@ describe('IP utilities', () => {
   test('formats location without duplicate values', () => {
     expect(formatLocation('Singapore', 'Singapore', 'Singapore')).toBe('Singapore');
     expect(formatLocation(undefined, undefined, undefined)).toBe('Unavailable');
+  });
+
+  test('formats location meta from postal and coordinates', () => {
+    expect(formatLocationMeta('95110', 37.339, -121.895)).toBe(
+      'Postal 95110 · 37.339, -121.895',
+    );
+    expect(formatLocationMeta(undefined, 37.339, -121.895)).toBe(
+      '37.339, -121.895',
+    );
+    expect(formatLocationMeta('95110')).toBe('Postal 95110');
+    expect(formatLocationMeta()).toBeUndefined();
   });
 
   test('formats a stable minute countdown', () => {

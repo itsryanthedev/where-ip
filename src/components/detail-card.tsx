@@ -8,14 +8,18 @@ type DetailCardProps = {
   label: string;
   value: string;
   supportingText?: string;
+  metaText?: string;
   leading?: ReactNode;
+  tabularValue?: boolean;
 };
 
 export function DetailCard({
   label,
   value,
   supportingText,
+  metaText,
   leading,
+  tabularValue = false,
 }: DetailCardProps) {
   const colors = useAppColors();
 
@@ -34,12 +38,27 @@ export function DetailCard({
         {leading}
         <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
       </View>
-      <Text selectable style={[styles.value, { color: colors.text }]}>
+      <Text
+        selectable
+        style={[
+          styles.value,
+          { color: colors.text },
+          tabularValue ? styles.tabular : null,
+        ]}
+      >
         {value}
       </Text>
       {supportingText ? (
         <Text selectable style={[styles.supporting, { color: colors.textMuted }]}>
           {supportingText}
+        </Text>
+      ) : null}
+      {metaText ? (
+        <Text
+          selectable
+          style={[styles.meta, { color: colors.textMuted }, styles.tabular]}
+        >
+          {metaText}
         </Text>
       ) : null}
     </View>
@@ -48,7 +67,9 @@ export function DetailCard({
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 280,
     minWidth: 220,
     minHeight: 132,
     borderWidth: 1,
@@ -78,5 +99,13 @@ const styles = StyleSheet.create({
   supporting: {
     fontSize: 13,
     lineHeight: 18,
+  },
+  meta: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
+  },
+  tabular: {
+    fontVariant: ['tabular-nums'],
   },
 });
