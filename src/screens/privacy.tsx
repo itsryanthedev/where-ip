@@ -26,7 +26,7 @@ export function Privacy() {
             WhereIP Privacy Policy
           </Text>
           <Text style={[styles.effectiveDate, { color: colors.textMuted }]}>
-            Effective July 24, 2026
+            Effective July 25, 2026
           </Text>
 
           <PolicySection featured title="The short version">
@@ -45,10 +45,10 @@ export function Privacy() {
           </PolicySection>
 
           <PolicySection title="Third-party providers">
-            IPinfo is the default. If it cannot return a usable result, WhereIP
-            may contact FreeIPAPI and then ipwho.is. You may select another
-            preferred provider. Each service operates independently and applies
-            its own privacy policy and terms.
+            ipwho.is is the default. If it cannot return a usable result,
+            WhereIP may contact FreeIPAPI and then IPinfo. You may select
+            another preferred provider. Each service operates independently and
+            applies its own privacy policy and terms.
           </PolicySection>
 
           <View style={styles.providerPolicies}>
@@ -98,11 +98,6 @@ export function Privacy() {
             or advertising permission. Production builds contain no analytics or
             advertising SDK. If you report a problem, you decide what information
             to include in the public GitHub issue.
-          </PolicySection>
-
-          <PolicySection title="Children">
-            WhereIP is a general-purpose network utility. It does not knowingly
-            collect personal information from children or from any other user.
           </PolicySection>
 
           <PolicySection title="Changes">

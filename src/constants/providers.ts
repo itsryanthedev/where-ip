@@ -2,14 +2,13 @@ import type { ProviderDefinition, ProviderId } from '@/types/ip';
 
 export const PROVIDERS: readonly ProviderDefinition[] = [
   {
-    id: 'ipinfo',
-    name: 'IPinfo',
-    shortDescription: 'Default · concise public network information',
-    endpoint: 'https://ipinfo.io/json',
-    documentationUrl:
-      'https://support.ipinfo.io/hc/en-us/articles/30792479436562-What-Is-the-Difference-Between-Using-the-Authenticated-Free-Plan-and-the-Public-API-With-No-Account',
-    privacyUrl: 'https://ipinfo.io/privacy-policy',
-    termsUrl: 'https://ipinfo.io/terms-of-service',
+    id: 'ipwhois',
+    name: 'ipwho.is',
+    shortDescription: 'Default · detailed IP and connection fields',
+    endpoint: 'https://ipwho.is/',
+    documentationUrl: 'https://ipwhois.io/documentation',
+    privacyUrl: 'https://ipwhois.io/privacy',
+    termsUrl: 'https://ipwhois.io/terms',
   },
   {
     id: 'freeipapi',
@@ -21,17 +20,18 @@ export const PROVIDERS: readonly ProviderDefinition[] = [
     termsUrl: 'https://freeipapi.com/terms',
   },
   {
-    id: 'ipwhois',
-    name: 'ipwho.is',
-    shortDescription: 'Alternative · detailed IP and connection fields',
-    endpoint: 'https://ipwho.is/',
-    documentationUrl: 'https://ipwhois.io/documentation',
-    privacyUrl: 'https://ipwhois.io/privacy',
-    termsUrl: 'https://ipwhois.io/terms',
+    id: 'ipinfo',
+    name: 'IPinfo',
+    shortDescription: 'Alternative · concise public network information',
+    endpoint: 'https://ipinfo.io/json',
+    documentationUrl:
+      'https://support.ipinfo.io/hc/en-us/articles/30792479436562-What-Is-the-Difference-Between-Using-the-Authenticated-Free-Plan-and-the-Public-API-With-No-Account',
+    privacyUrl: 'https://ipinfo.io/privacy-policy',
+    termsUrl: 'https://ipinfo.io/terms-of-service',
   },
 ] as const;
 
-export const DEFAULT_PROVIDER_ID: ProviderId = 'ipinfo';
+export const DEFAULT_PROVIDER_ID: ProviderId = 'ipwhois';
 
 export const REFRESH_COOLDOWN_MS = 60_000;
 export const CACHE_FRESHNESS_MS = 15 * 60_000;

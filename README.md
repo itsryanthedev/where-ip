@@ -17,8 +17,6 @@ No account. No ads. No analytics. No GPS permission. No WhereIP backend.
 - Timezone, postal code, and approximate coordinates, when supplied
 - The provider that returned the result
 - The time of the last successful lookup
-- An honest **Unavailable** state for DNS, which apps and browsers cannot
-  determine reliably across every supported platform
 
 IP-based location is an estimate of the network connection. It is not the
 device's GPS location and may identify a nearby city, VPN endpoint, mobile
@@ -51,24 +49,24 @@ See [the full WhereIP privacy policy](docs/privacy-policy.md).
 
 ## Providers
 
-[IPinfo's supported legacy public endpoint](https://support.ipinfo.io/hc/en-us/articles/30792479436562-What-Is-the-Difference-Between-Using-the-Authenticated-Free-Plan-and-the-Public-API-With-No-Account)
-is the default. The user may select either alternative. If the preferred
-provider fails, WhereIP tries the remaining providers once in order.
+[ipwho.is](https://ipwhois.io/documentation) is the default. The user may
+select either alternative. If the preferred provider fails, WhereIP tries the
+remaining providers once in order.
 
 | Provider | Role | Public access | Official privacy details |
 | --- | --- | --- | --- |
-| [IPinfo](https://support.ipinfo.io/hc/en-us/articles/30792479436562-What-Is-the-Difference-Between-Using-the-Authenticated-Free-Plan-and-the-Public-API-With-No-Account) | Default | No account; 1,000 requests/day shared by clients on the same public IP | [Privacy Policy](https://ipinfo.io/privacy-policy) · [Terms of Service](https://ipinfo.io/terms-of-service) |
+| [ipwho.is](https://ipwhois.io/documentation) | Default | No API key; 1,000 requests/day per client IP, or per domain for browser CORS traffic | [Privacy Policy](https://ipwhois.io/privacy) · [Terms of Service](https://ipwhois.io/terms) |
 | [FreeIPAPI](https://freeipapi.com/docs/api-reference/api-introduction) | Fallback 1 | No authentication on free servers; provider advertises commercial and non-commercial use | [Privacy Policy](https://freeipapi.com/privacy) · [Terms of Use](https://freeipapi.com/terms) |
-| [ipwho.is](https://ipwhois.io/documentation) | Fallback 2 | No API key; 1,000 requests/day per client IP, or per domain for browser CORS traffic | [Privacy Policy](https://ipwhois.io/privacy) · [Terms of Service](https://ipwhois.io/terms) |
+| [IPinfo](https://support.ipinfo.io/hc/en-us/articles/30792479436562-What-Is-the-Difference-Between-Using-the-Authenticated-Free-Plan-and-the-Public-API-With-No-Account) | Fallback 2 | No account; 1,000 requests/day shared by clients on the same public IP | [Privacy Policy](https://ipinfo.io/privacy-policy) · [Terms of Service](https://ipinfo.io/terms-of-service) |
 
 These URLs were last verified against the providers' official sites on
 2026-07-24. They should be reviewed again before every store release.
 
-> **Release note:** IPinfo's current Terms of Service describe Site content as
-> available for personal or internal business use and direct external
-> commercial use to a separate OEM agreement. ipwho.is documentation says its
-> free endpoint permits commercial use, while its Terms describe personal or
-> internal business use. Because a public app is not the same as an internal
+> **Release note:** ipwho.is documentation says its free endpoint permits
+> commercial use, while its Terms describe personal or internal business use.
+> IPinfo's current Terms of Service describe Site content as available for
+> personal or internal business use and direct external commercial use to a
+> separate OEM agreement. Because a public app is not the same as an internal
 > integration, obtain written provider confirmation before store submission or
 > replace any provider whose permission remains unclear. FreeIPAPI currently
 > states that its free API supports commercial and non-commercial use.

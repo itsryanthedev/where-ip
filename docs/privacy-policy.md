@@ -1,6 +1,6 @@
 # WhereIP Privacy Policy
 
-Last updated: July 24, 2026
+Last updated: July 25, 2026
 
 WhereIP is a free and open-source utility maintained by
 [Ryan the Dev](https://github.com/itsryanthedev). This policy describes the
@@ -22,12 +22,12 @@ WhereIP supports these providers:
 
 | Provider | Privacy policy | Terms |
 | --- | --- | --- |
-| IPinfo | <https://ipinfo.io/privacy-policy> | <https://ipinfo.io/terms-of-service> |
-| FreeIPAPI | <https://freeipapi.com/privacy> | <https://freeipapi.com/terms> |
 | ipwho.is / IPWhois | <https://ipwhois.io/privacy> | <https://ipwhois.io/terms> |
+| FreeIPAPI | <https://freeipapi.com/privacy> | <https://freeipapi.com/terms> |
+| IPinfo | <https://ipinfo.io/privacy-policy> | <https://ipinfo.io/terms-of-service> |
 
-IPinfo is selected by default. A user may select another provider. When a
-lookup fails, WhereIP may contact a fallback provider. The app identifies the
+ipwho.is is selected by default. A user may select another provider. When a
+lookup fails, WhereIP may contact a fallback provider (either FreeIPAPI or IPinfo). The app identifies the
 provider that supplied each result.
 
 Provider responses may include the public IP address, IP version, approximate
@@ -58,12 +58,6 @@ WhereIP shares no information with its maintainer because it has no receiving
 server. A network request is sent only to the selected provider and, when
 needed, fallback providers. If the user chooses a link, the platform opens the
 linked website in a browser and that website applies its own privacy policy.
-
-## Children's privacy
-
-WhereIP is a general-audience network utility and is not directed to children.
-It does not knowingly collect personal information through a WhereIP backend,
-because no such backend exists.
 
 ## Security
 

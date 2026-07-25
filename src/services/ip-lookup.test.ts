@@ -17,27 +17,27 @@ function response(
 }
 
 describe('provider fallback chain', () => {
-  test('uses IPinfo first by default', async () => {
+  test('uses ipwho.is first by default', async () => {
     const fetchImplementation = jest.fn(async () =>
       response(200, {
+        success: true,
         ip: '8.8.4.4',
-        city: 'Mountain View',
-        region: 'California',
-        country: 'US',
-        org: 'AS15169 Google LLC',
+        country_code: 'US',
+        country: 'United States',
+        connection: { asn: 15169, org: 'Google LLC' },
       }),
     );
 
     const outcome = await lookupPublicIp({
-      preferredProvider: 'ipinfo',
+      preferredProvider: 'ipwhois',
       fetchImplementation,
       now: Date.parse('2026-07-24T10:00:00.000Z'),
     });
 
-    expect(outcome.result.providerId).toBe('ipinfo');
-    expect(outcome.attemptedProviders).toEqual(['ipinfo']);
+    expect(outcome.result.providerId).toBe('ipwhois');
+    expect(outcome.attemptedProviders).toEqual(['ipwhois']);
     expect(fetchImplementation).toHaveBeenCalledWith(
-      'https://ipinfo.io/json',
+      'https://ipwho.is/',
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
@@ -58,14 +58,14 @@ describe('provider fallback chain', () => {
     const now = Date.parse('2026-07-24T10:00:00.000Z');
 
     const outcome = await lookupPublicIp({
-      preferredProvider: 'ipinfo',
+      preferredProvider: 'ipwhois',
       fetchImplementation,
       now,
     });
 
     expect(outcome.result.providerId).toBe('freeipapi');
-    expect(outcome.attemptedProviders).toEqual(['ipinfo', 'freeipapi']);
-    expect(outcome.providerCooldowns.ipinfo).toBe(now + 120_000);
+    expect(outcome.attemptedProviders).toEqual(['ipwhois', 'freeipapi']);
+    expect(outcome.providerCooldowns.ipwhois).toBe(now + 120_000);
   });
 
   test('caps provider Retry-After cooldowns at one hour', async () => {
@@ -84,12 +84,12 @@ describe('provider fallback chain', () => {
     const now = Date.parse('2026-07-24T10:00:00.000Z');
 
     const outcome = await lookupPublicIp({
-      preferredProvider: 'ipinfo',
+      preferredProvider: 'ipwhois',
       fetchImplementation,
       now,
     });
 
-    expect(outcome.providerCooldowns.ipinfo).toBe(now + 60 * 60_000);
+    expect(outcome.providerCooldowns.ipwhois).toBe(now + 60 * 60_000);
   });
 
   test('falls back before parsing a declared oversized response', async () => {
@@ -108,7 +108,7 @@ describe('provider fallback chain', () => {
       );
 
     const outcome = await lookupPublicIp({
-      preferredProvider: 'ipinfo',
+      preferredProvider: 'ipwhois',
       fetchImplementation,
     });
 
@@ -119,22 +119,22 @@ describe('provider fallback chain', () => {
   test('moves a user-selected provider to the front', async () => {
     const fetchImplementation = jest.fn(async () =>
       response(200, {
-        success: true,
         ip: '9.9.9.9',
-        country_code: 'US',
-        country: 'United States',
-        connection: { asn: 19281, org: 'Quad9' },
+        city: 'Mountain View',
+        region: 'California',
+        country: 'US',
+        org: 'AS19281 Quad9',
       }),
     );
 
     const outcome = await lookupPublicIp({
-      preferredProvider: 'ipwhois',
+      preferredProvider: 'ipinfo',
       fetchImplementation,
     });
 
-    expect(outcome.attemptedProviders).toEqual(['ipwhois']);
+    expect(outcome.attemptedProviders).toEqual(['ipinfo']);
     expect(fetchImplementation).toHaveBeenCalledWith(
-      'https://ipwho.is/',
+      'https://ipinfo.io/json',
       expect.any(Object),
     );
   });
@@ -144,11 +144,11 @@ describe('provider fallback chain', () => {
 
     await expect(
       lookupPublicIp({
-        preferredProvider: 'ipinfo',
+        preferredProvider: 'ipwhois',
         fetchImplementation,
       }),
     ).rejects.toMatchObject<Partial<LookupChainError>>({
-      attemptedProviders: ['ipinfo', 'freeipapi', 'ipwhois'],
+      attemptedProviders: ['ipwhois', 'freeipapi', 'ipinfo'],
     });
     expect(fetchImplementation).toHaveBeenCalledTimes(3);
   });

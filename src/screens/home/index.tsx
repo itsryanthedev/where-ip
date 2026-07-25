@@ -207,7 +207,7 @@ export function Home() {
                 Checking your public connection…
               </Text>
               <Text style={[styles.loadingDescription, { color: colors.textMuted }]}>
-                IPinfo is tried first. A fallback is used only if needed.
+                ipwho.is is tried first. A fallback is used only if needed.
               </Text>
             </View>
           ) : result ? (
@@ -390,11 +390,6 @@ export function Home() {
                   label="Timezone"
                   supportingText={result.postalCode ? `Postal area ${result.postalCode}` : undefined}
                   value={result.timezone ?? 'Unavailable'}
-                />
-                <DetailCard
-                  label="DNS resolver"
-                  supportingText="Apps and browsers cannot reliably read your configured DNS resolver."
-                  value="Unavailable"
                 />
                 <DetailCard
                   label="Coordinates"
