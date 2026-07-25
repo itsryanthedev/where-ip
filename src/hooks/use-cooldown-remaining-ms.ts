@@ -10,7 +10,18 @@ export function getCooldownRemainingMs(
     return 0;
   }
 
-  return Math.max(0, REFRESH_COOLDOWN_MS - (now - Date.parse(fetchedAt)));
+  const elapsedMs = now - Date.parse(fetchedAt);
+  if (!Number.isFinite(elapsedMs)) {
+    return 0;
+  }
+
+  // Cap at the configured cooldown. A stale `now` (countdown interval stopped
+  // at Ready while wall time kept moving) would otherwise report remaining >
+  // REFRESH_COOLDOWN_MS — e.g. "1:59" or "2:39" after a provider-switch refresh.
+  return Math.min(
+    REFRESH_COOLDOWN_MS,
+    Math.max(0, REFRESH_COOLDOWN_MS - elapsedMs),
+  );
 }
 
 /**
@@ -21,6 +32,13 @@ export function useCooldownRemainingMs(
   fetchedAt: string | null | undefined,
 ): number {
   const [now, setNow] = useState(() => Date.now());
+  const [seenFetchedAt, setSeenFetchedAt] = useState(fetchedAt);
+
+  if (fetchedAt !== seenFetchedAt) {
+    setSeenFetchedAt(fetchedAt);
+    setNow(Date.now());
+  }
+
   const remainingMs = getCooldownRemainingMs(fetchedAt, now);
   const isCoolingDown = remainingMs > 0;
 
