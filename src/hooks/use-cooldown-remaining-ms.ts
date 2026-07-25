@@ -34,9 +34,16 @@ export function useCooldownRemainingMs(
   const [now, setNow] = useState(() => Date.now());
   const [seenFetchedAt, setSeenFetchedAt] = useState(fetchedAt);
 
+  // Adjust during render when fetchedAt changes (React-supported). Use the
+  // prop's timestamp — not Date.now() — so render stays pure/idempotent.
   if (fetchedAt !== seenFetchedAt) {
     setSeenFetchedAt(fetchedAt);
-    setNow(Date.now());
+    if (fetchedAt) {
+      const fetchedAtMs = Date.parse(fetchedAt);
+      if (Number.isFinite(fetchedAtMs)) {
+        setNow(fetchedAtMs);
+      }
+    }
   }
 
   const remainingMs = getCooldownRemainingMs(fetchedAt, now);
