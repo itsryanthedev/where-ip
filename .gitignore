@@ -59,6 +59,11 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Local AI harness hooks (absolute home paths; machine-local)
+.claude/settings.local.json
+.codex/hooks.json
+.cursor/hooks.json
+
 # Packaged release artifacts
 *.dmg
 *.pkg
