@@ -392,11 +392,6 @@ export function Home() {
                   value={result.timezone ?? 'Unavailable'}
                 />
                 <DetailCard
-                  label="DNS resolver"
-                  supportingText="Apps and browsers cannot reliably read your configured DNS resolver."
-                  value="Unavailable"
-                />
-                <DetailCard
                   label="Coordinates"
                   supportingText="Approximate IP geolocation"
                   value={

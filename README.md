@@ -17,8 +17,6 @@ No account. No ads. No analytics. No GPS permission. No WhereIP backend.
 - Timezone, postal code, and approximate coordinates, when supplied
 - The provider that returned the result
 - The time of the last successful lookup
-- An honest **Unavailable** state for DNS, which apps and browsers cannot
-  determine reliably across every supported platform
 
 IP-based location is an estimate of the network connection. It is not the
 device's GPS location and may identify a nearby city, VPN endpoint, mobile
