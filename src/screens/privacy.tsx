@@ -72,13 +72,13 @@ export function Privacy() {
                     compact
                     href={provider.privacyUrl}
                     linkId={providerLinkId(provider.id, 'privacy')}
-                    label="Privacy Policy"
+                    label={`${provider.name} Privacy Policy`}
                   />
                   <ExternalLink
                     compact
                     href={provider.termsUrl}
                     linkId={providerLinkId(provider.id, 'terms')}
-                    label="Terms of Use"
+                    label={`${provider.name} Terms of Use`}
                   />
                 </View>
               </View>

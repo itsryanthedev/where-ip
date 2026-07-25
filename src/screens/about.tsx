@@ -74,7 +74,7 @@ export function About() {
                   },
                 ]}
               >
-                <Text style={[styles.inlineRouteLabel, { color: colors.accent }]}>
+                <Text style={[styles.inlineRouteLabel, { color: colors.accentText }]}>
                   Read the complete WhereIP privacy policy
                 </Text>
               </TactilePressable>

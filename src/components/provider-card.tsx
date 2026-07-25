@@ -114,8 +114,8 @@ export function ProviderCard({
           },
         ]}
       >
-        <InfoIcon color={colors.accent} size={18} />
-        <Text style={[styles.infoLabel, { color: colors.accent }]}>
+        <InfoIcon color={colors.accentText} size={18} />
+        <Text style={[styles.infoLabel, { color: colors.accentText }]}>
           Privacy & terms
         </Text>
       </TactilePressable>
@@ -139,19 +139,19 @@ export function ProviderCard({
               compact
               href={provider.privacyUrl}
               linkId={providerLinkId(provider.id, 'privacy')}
-              label="Privacy Policy"
+              label={`${provider.name} Privacy Policy`}
             />
             <ExternalLink
               compact
               href={provider.termsUrl}
               linkId={providerLinkId(provider.id, 'terms')}
-              label="Terms of Use"
+              label={`${provider.name} Terms of Use`}
             />
             <ExternalLink
               compact
               href={provider.documentationUrl}
               linkId={providerLinkId(provider.id, 'documentation')}
-              label="API documentation"
+              label={`${provider.name} API documentation`}
             />
           </View>
         </RevealView>
