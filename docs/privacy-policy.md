@@ -27,7 +27,7 @@ WhereIP supports these providers:
 | IPinfo | <https://ipinfo.io/privacy-policy> | <https://ipinfo.io/terms-of-service> |
 
 ipwho.is is selected by default. A user may select another provider. When a
-lookup fails, WhereIP may contact a fallback provider. The app identifies the
+lookup fails, WhereIP may contact a fallback provider (either FreeIPAPI or IPinfo). The app identifies the
 provider that supplied each result.
 
 Provider responses may include the public IP address, IP version, approximate

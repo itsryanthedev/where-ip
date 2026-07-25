@@ -26,7 +26,7 @@ export function Privacy() {
             WhereIP Privacy Policy
           </Text>
           <Text style={[styles.effectiveDate, { color: colors.textMuted }]}>
-            Effective July 24, 2026
+            Effective July 25, 2026
           </Text>
 
           <PolicySection featured title="The short version">
