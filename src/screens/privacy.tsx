@@ -100,11 +100,6 @@ export function Privacy() {
             to include in the public GitHub issue.
           </PolicySection>
 
-          <PolicySection title="Children">
-            WhereIP is a general-purpose network utility. It does not knowingly
-            collect personal information from children or from any other user.
-          </PolicySection>
-
           <PolicySection title="Changes">
             Material changes to this policy will be published with the source
             code and reflected in a new effective date. Provider policies can

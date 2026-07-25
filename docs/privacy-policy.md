@@ -59,12 +59,6 @@ server. A network request is sent only to the selected provider and, when
 needed, fallback providers. If the user chooses a link, the platform opens the
 linked website in a browser and that website applies its own privacy policy.
 
-## Children's privacy
-
-WhereIP is a general-audience network utility and is not directed to children.
-It does not knowingly collect personal information through a WhereIP backend,
-because no such backend exists.
-
 ## Security
 
 Provider requests use HTTPS. No secret or API key is embedded in the app.
