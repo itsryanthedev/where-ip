@@ -35,6 +35,8 @@ import type { ProviderId } from '@/types/ip';
 import {
   countryCodeToFlag,
   formatLocation,
+  formatLocationMeta,
+  formatTimezoneLocalTime,
   formatLookupTime,
 } from '@/utils/ip';
 
@@ -45,7 +47,8 @@ function HomeHeaderAboutButton() {
     <Link href="/about" asChild>
       <TactilePressable
         accessibilityRole="button"
-        accessibilityLabel="About and privacy"
+        accessibilityLabel="About WhereIP and privacy"
+        accessibilityHint="Opens how lookups work, provider choice, and source links"
         style={({ pressed }) => [
           styles.headerButton,
           {
@@ -59,6 +62,29 @@ function HomeHeaderAboutButton() {
         <InfoIcon color={colors.accent} size={25} />
       </TactilePressable>
     </Link>
+  );
+}
+
+function TimezoneDetailCard({ timezone }: { timezone?: string }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!timezone) {
+      return;
+    }
+
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, [timezone]);
+
+  const localTime = formatTimezoneLocalTime(timezone, now);
+
+  return (
+    <DetailCard
+      label="Timezone"
+      supportingText={localTime}
+      value={timezone ?? 'Unavailable'}
+    />
   );
 }
 
@@ -88,6 +114,7 @@ export function Home() {
   const isCompact = width < 620;
   const isLoading = status === 'loading' || status === 'refreshing';
   const provider = result ? getProvider(result.providerId) : null;
+  const showMarketingHero = !result;
 
   useEffect(() => {
     return () => {
@@ -162,32 +189,44 @@ export function Home() {
           ]}
         />
         <View style={styles.content}>
-          <View style={styles.hero}>
-            <AppLogo size={isCompact ? 78 : 92} />
-            <View style={styles.heroCopy}>
-              <Text style={[styles.eyebrow, { color: colors.accentText }]}>
-                Your public connection
-              </Text>
+          {showMarketingHero ? (
+            <View style={styles.hero}>
+              <AppLogo size={isCompact ? 78 : 92} />
+              <View style={styles.heroCopy}>
+                <Text style={[styles.eyebrow, { color: colors.accentText }]}>
+                  Your public connection
+                </Text>
+                <Text
+                  accessibilityRole="header"
+                  style={[
+                    styles.heroTitle,
+                    {
+                      color: colors.text,
+                      fontSize: isCompact ? 30 : 38,
+                      letterSpacing: isCompact ? -0.7 : -1.1,
+                      lineHeight: isCompact ? 36 : 44,
+                    },
+                  ]}
+                >
+                  Know what the internet sees.
+                </Text>
+                <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
+                  One clear, privacy-first view of your public IP and approximate
+                  network location.
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.compactBrand}>
+              <AppLogo size={44} />
               <Text
                 accessibilityRole="header"
-                style={[
-                  styles.heroTitle,
-                  {
-                    color: colors.text,
-                    fontSize: isCompact ? 30 : 38,
-                    letterSpacing: isCompact ? -0.7 : -1.1,
-                    lineHeight: isCompact ? 36 : 44,
-                  },
-                ]}
+                style={[styles.compactBrandTitle, { color: colors.text }]}
               >
-                Know what the internet sees.
-              </Text>
-              <Text style={[styles.heroDescription, { color: colors.textMuted }]}>
-                One clear, privacy-first view of your public IP and approximate
-                network location.
+                WhereIP
               </Text>
             </View>
-          </View>
+          )}
 
           {!isReady || (status === 'loading' && !result) ? (
             <View
@@ -226,6 +265,13 @@ export function Home() {
               >
                 <View style={styles.ipTopRow}>
                   <View
+                    accessible
+                    accessibilityRole="text"
+                    accessibilityLabel={
+                      status === 'success'
+                        ? 'Result is up to date from the latest check'
+                        : 'Showing a result saved on this device'
+                    }
                     style={[
                       styles.statusPill,
                       {
@@ -252,7 +298,9 @@ export function Home() {
                         },
                       ]}
                     >
-                      {status === 'success' ? 'Current' : 'Cached result'}
+                      {status === 'success'
+                        ? 'Up to date'
+                        : 'Saved on this device'}
                     </Text>
                   </View>
                   <Text
@@ -362,7 +410,6 @@ export function Home() {
               ) : null}
 
               <RevealView
-                delay={40}
                 duration={motion.duration.content}
                 fromTranslateY={motion.offset.content}
                 style={styles.detailGrid}
@@ -370,6 +417,11 @@ export function Home() {
                 <DetailCard
                   label="Approximate location"
                   supportingText="Estimated from your public IP — never GPS."
+                  metaText={formatLocationMeta(
+                    result.postalCode,
+                    result.latitude,
+                    result.longitude,
+                  )}
                   value={formatLocation(
                     result.city,
                     result.region,
@@ -378,48 +430,43 @@ export function Home() {
                 />
                 <DetailCard
                   label="Network"
-                  supportingText={result.asn ?? 'ASN unavailable'}
+                  supportingText={
+                    result.asn
+                      ? `Network ID ${result.asn}`
+                      : 'Network ID unavailable'
+                  }
                   value={result.organization ?? result.isp ?? 'Unavailable'}
                 />
                 <DetailCard
                   label="Connection"
-                  supportingText="Observed by the lookup provider"
+                  supportingText="Internet Protocol version from the provider"
                   value={`IPv${result.ipVersion}`}
-                />
-                <DetailCard
-                  label="Timezone"
-                  supportingText={result.postalCode ? `Postal area ${result.postalCode}` : undefined}
-                  value={result.timezone ?? 'Unavailable'}
-                />
-                <DetailCard
-                  label="Coordinates"
-                  supportingText="Approximate IP geolocation"
-                  value={
-                    result.latitude !== undefined && result.longitude !== undefined
-                      ? `${result.latitude.toFixed(3)}, ${result.longitude.toFixed(3)}`
-                      : 'Unavailable'
-                  }
                 />
               </RevealView>
 
               <RevealView
-                delay={80}
                 duration={motion.duration.content}
                 fromTranslateY={motion.offset.content}
-                style={[
-                  styles.refreshCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: colors.border,
-                    boxShadow: `${shadows.card} ${colors.shadow}`,
-                  },
-                ]}
+                style={styles.detailGrid}
               >
-                <RefreshCountdown
-                  cooldownRemainingMs={cooldownRemainingMs}
-                  loading={isLoading}
-                  onRefresh={() => void refresh()}
-                />
+                <TimezoneDetailCard timezone={result.timezone} />
+                <View
+                  style={[
+                    styles.refreshCard,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      boxShadow: `${shadows.card} ${colors.shadow}`,
+                    },
+                  ]}
+                >
+                  <RefreshCountdown
+                    cooldownRemainingMs={cooldownRemainingMs}
+                    loading={isLoading}
+                    onRefresh={() => void refresh()}
+                    variant="card"
+                  />
+                </View>
               </RevealView>
             </>
           ) : (
@@ -492,6 +539,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.xl,
     paddingVertical: spacing.lg,
+  },
+  compactBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  compactBrandTitle: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '800',
+    letterSpacing: -0.4,
   },
   heroCopy: {
     flex: 1,
@@ -625,8 +684,13 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   refreshCard: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 280,
+    minWidth: 220,
+    minHeight: 132,
     borderWidth: 1,
-    borderRadius: radii.section,
+    borderRadius: radii.card,
     borderCurve: 'continuous',
     padding: spacing.lg,
   },

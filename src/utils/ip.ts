@@ -141,6 +141,44 @@ export function formatLocation(
   return values.length > 0 ? values.join(', ') : 'Unavailable';
 }
 
+export function formatLocationMeta(
+  postalCode?: string,
+  latitude?: number,
+  longitude?: number,
+): string | undefined {
+  const parts: string[] = [];
+
+  if (postalCode) {
+    parts.push(`Postal ${postalCode}`);
+  }
+
+  if (latitude !== undefined && longitude !== undefined) {
+    parts.push(`${latitude.toFixed(3)}, ${longitude.toFixed(3)}`);
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : undefined;
+}
+
+export function formatTimezoneLocalTime(
+  timezone?: string,
+  now: Date = new Date(),
+): string | undefined {
+  if (!timezone) {
+    return undefined;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      timeZone: timezone,
+      weekday: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(now);
+  } catch {
+    return undefined;
+  }
+}
+
 export function formatLookupTime(isoDate?: string): string {
   if (!isoDate) {
     return 'Not checked yet';
