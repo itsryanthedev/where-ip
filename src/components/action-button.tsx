@@ -35,12 +35,12 @@ export function ActionButton({
   const isDisabled = disabled || loading;
   const backgroundColor =
     variant === 'primary'
-      ? colors.accent
+      ? colors.accentFill
       : variant === 'secondary'
         ? colors.accentSoft
         : 'transparent';
   const foregroundColor =
-    variant === 'primary' ? '#FFFFFF' : colors.accent;
+    variant === 'primary' ? colors.onAccent : colors.accentText;
 
   return (
     <TactilePressable

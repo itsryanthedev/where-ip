@@ -58,8 +58,8 @@ export function DisclosureDialog() {
               <View style={styles.logoRow}>
                 <AppLogo size={64} />
                 <View style={styles.headingGroup}>
-                  <Text style={[styles.eyebrow, { color: colors.accent }]}>
-                    BEFORE THE FIRST LOOKUP
+                  <Text style={[styles.eyebrow, { color: colors.accentText }]}>
+                    Before the first lookup
                   </Text>
                   <Text
                     accessibilityRole="header"
@@ -108,13 +108,13 @@ export function DisclosureDialog() {
                         compact
                         href={provider.privacyUrl}
                         linkId={providerLinkId(provider.id, 'privacy')}
-                        label="Privacy"
+                        label={`${provider.name} Privacy Policy`}
                       />
                       <ExternalLink
                         compact
                         href={provider.termsUrl}
                         linkId={providerLinkId(provider.id, 'terms')}
-                        label="Terms"
+                        label={`${provider.name} Terms of Use`}
                       />
                     </View>
                   </View>
@@ -123,7 +123,7 @@ export function DisclosureDialog() {
 
               <View style={styles.actions}>
                 <ActionButton
-                  label="Continue"
+                  label="Acknowledge and continue"
                   loading={submitting}
                   onPress={() => void handleContinue()}
                 />
@@ -171,10 +171,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   eyebrow: {
-    fontSize: 11,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '800',
     letterSpacing: 0.9,
+    textTransform: 'uppercase',
   },
   title: {
     fontSize: 25,

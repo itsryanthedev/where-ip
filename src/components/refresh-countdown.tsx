@@ -103,7 +103,7 @@ export function RefreshCountdown({
       <ActionButton
         accessibilityHint="Requests fresh IP information from the selected provider"
         disabled={disabled}
-        icon={<RefreshIcon color="#FFFFFF" />}
+        icon={<RefreshIcon color={colors.onAccent} />}
         label="Refresh"
         onPress={onRefresh}
         style={styles.button}
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   countdown: {
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },

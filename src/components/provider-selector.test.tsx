@@ -43,9 +43,25 @@ describe('ProviderSelector', () => {
     await fireEvent.press(policiesButton);
 
     expect(getByText('IPinfo privacy')).toBeTruthy();
-    expect(getByRole('link', { name: 'Privacy Policy' })).toBeTruthy();
-    expect(getByRole('link', { name: 'Terms of Use' })).toBeTruthy();
-    expect(getByRole('link', { name: 'API documentation' })).toBeTruthy();
+    expect(getByRole('link', { name: 'IPinfo Privacy Policy' })).toBeTruthy();
+    expect(getByRole('link', { name: 'IPinfo Terms of Use' })).toBeTruthy();
+    expect(
+      getByRole('link', { name: 'IPinfo API documentation' }),
+    ).toBeTruthy();
+    expect(queryByRole('radio', { name: 'Use IPinfo' })).toBeNull();
+  });
+
+  test('dismisses an open menu when the outside layer is pressed', async () => {
+    const { getByRole, queryByRole } = await render(
+      <ProviderSelector selectedProvider="ipinfo" onSelect={jest.fn()} />,
+    );
+
+    await fireEvent.press(getByRole('button', { name: 'Provider, IPinfo' }));
+    expect(getByRole('radio', { name: 'Use IPinfo' })).toBeTruthy();
+
+    await fireEvent.press(
+      getByRole('button', { name: 'Dismiss provider menu' }),
+    );
     expect(queryByRole('radio', { name: 'Use IPinfo' })).toBeNull();
   });
 

@@ -165,8 +165,8 @@ export function Home() {
           <View style={styles.hero}>
             <AppLogo size={isCompact ? 78 : 92} />
             <View style={styles.heroCopy}>
-              <Text style={[styles.eyebrow, { color: colors.accent }]}>
-                YOUR PUBLIC CONNECTION
+              <Text style={[styles.eyebrow, { color: colors.accentText }]}>
+                Your public connection
               </Text>
               <Text
                 accessibilityRole="header"
@@ -255,7 +255,12 @@ export function Home() {
                       {status === 'success' ? 'Current' : 'Cached result'}
                     </Text>
                   </View>
-                  <Text style={styles.flag} accessibilityLabel={result.countryCode}>
+                  <Text
+                    style={styles.flag}
+                    accessibilityLabel={
+                      result.countryName ?? result.countryCode
+                    }
+                  >
                     {countryCodeToFlag(result.countryCode)}
                   </Text>
                 </View>
@@ -281,8 +286,8 @@ export function Home() {
                 </Text>
 
                 <View style={styles.ipActions}>
-                  <ActionButton
-                    icon={<CopyIcon color="#FFFFFF" />}
+                    <ActionButton
+                    icon={<CopyIcon color={colors.onAccent} />}
                     label={copied ? 'Copied' : 'Copy IP'}
                     onPress={() => void copyIp()}
                     style={styles.ipAction}
@@ -433,7 +438,7 @@ export function Home() {
               ]}
             >
               <Text style={[styles.loadingTitle, { color: colors.text }]}>
-                We couldn’t check your connection
+                Unable to check your connection
               </Text>
               <Text selectable style={[styles.loadingDescription, { color: colors.textMuted }]}>
                 {errorMessage ?? 'Check your internet connection and try again.'}
@@ -503,6 +508,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     fontWeight: '800',
     letterSpacing: 1.1,
+    textTransform: 'uppercase',
   },
   heroTitle: {
     fontWeight: '800',

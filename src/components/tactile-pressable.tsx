@@ -5,6 +5,7 @@ import {
   Easing,
   Platform,
   Pressable,
+  StyleSheet,
   type PressableStateCallbackType,
   type StyleProp,
   type ViewStyle,
@@ -12,8 +13,6 @@ import {
 
 import { motion } from '@/constants/theme';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type PressableProps = ComponentProps<typeof Pressable>;
 
@@ -24,6 +23,11 @@ type TactilePressableProps = Omit<PressableProps, 'style'> & {
     | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 };
 
+/**
+ * Pressable with scale feedback. On web, Animated.createAnimatedComponent(Pressable)
+ * drops non-animated / function styles (background, padding, radius), so scale is
+ * applied on a wrapping Animated.View while Pressable keeps normal styles.
+ */
 export function TactilePressable({
   disabled,
   onPressIn,
@@ -34,6 +38,7 @@ export function TactilePressable({
 }: TactilePressableProps) {
   const reduceMotion = useReducedMotion();
   const [scale] = useState(() => new Animated.Value(1));
+  const [pressed, setPressed] = useState(false);
   const motionDisabled = isStatic || disabled || reduceMotion;
 
   // Sync Animated.Value when motion is disabled mid-animation (external system).
@@ -61,25 +66,77 @@ export function TactilePressable({
   };
 
   const handlePressIn: NonNullable<PressableProps['onPressIn']> = (event) => {
+    setPressed(true);
     animateScale(motion.scale.pressed, motion.duration.pressIn);
     onPressIn?.(event);
   };
 
   const handlePressOut: NonNullable<PressableProps['onPressOut']> = (event) => {
+    setPressed(false);
     animateScale(1, motion.duration.pressOut);
     onPressOut?.(event);
   };
 
+  const resolvedStyle =
+    typeof style === 'function' ? style({ pressed, hovered: false }) : style;
+  const hostStyle = layoutHostStyle(resolvedStyle);
+
   return (
-    <AnimatedPressable
-      {...props}
-      disabled={disabled}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={(state) => [
-        typeof style === 'function' ? style(state) : style,
+    <Animated.View
+      style={[
+        hostStyle,
         motionDisabled ? null : { transform: [{ scale }] },
       ]}
-    />
+    >
+      <Pressable
+        {...props}
+        disabled={disabled}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={style}
+      />
+    </Animated.View>
   );
+}
+
+/** Lift flex/sizing onto the animated host so row layouts like `flex: 1` still work. */
+function layoutHostStyle(style: StyleProp<ViewStyle>): ViewStyle | undefined {
+  const flat = StyleSheet.flatten(style);
+  if (!flat) {
+    return undefined;
+  }
+
+  const host: ViewStyle = {};
+  let hasLayout = false;
+
+  const assign = <K extends keyof ViewStyle>(key: K) => {
+    const value = flat[key];
+    if (value !== undefined) {
+      host[key] = value;
+      hasLayout = true;
+    }
+  };
+
+  assign('flex');
+  assign('flexGrow');
+  assign('flexShrink');
+  assign('flexBasis');
+  assign('alignSelf');
+  assign('width');
+  assign('minWidth');
+  assign('maxWidth');
+  assign('height');
+  assign('minHeight');
+  assign('maxHeight');
+  assign('margin');
+  assign('marginTop');
+  assign('marginBottom');
+  assign('marginLeft');
+  assign('marginRight');
+  assign('marginHorizontal');
+  assign('marginVertical');
+  assign('marginStart');
+  assign('marginEnd');
+
+  return hasLayout ? host : undefined;
 }

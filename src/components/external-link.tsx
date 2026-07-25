@@ -34,8 +34,8 @@ export function ExternalLink({
         { opacity: pressed ? 0.65 : 1 },
       ]}
     >
-      <Text style={[styles.label, { color: colors.accent }]}>{label}</Text>
-      <ExternalIcon color={colors.accent} size={compact ? 15 : 17} />
+      <Text style={[styles.label, { color: colors.accentText }]}>{label}</Text>
+      <ExternalIcon color={colors.accentText} size={compact ? 15 : 17} />
     </TactilePressable>
   );
 }

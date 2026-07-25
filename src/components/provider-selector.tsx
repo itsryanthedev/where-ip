@@ -79,6 +79,11 @@ export function ProviderSelector({
     animateChevron(open);
   };
 
+  const dismissPopovers = () => {
+    setMenuVisible(false);
+    setPoliciesOpen(false);
+  };
+
   const selectProvider = (providerId: ProviderId) => {
     onSelect(providerId);
     setMenuVisible(false);
@@ -86,6 +91,15 @@ export function ProviderSelector({
 
   return (
     <View style={[styles.container, { zIndex: popoverOpen ? 20 : 0 }]}>
+      {popoverOpen ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss provider menu"
+          onPress={dismissPopovers}
+          style={styles.dismissLayer}
+        />
+      ) : null}
+
       <View style={styles.controls}>
         <TactilePressable
           accessibilityRole="button"
@@ -159,7 +173,7 @@ export function ProviderSelector({
             {
               color:
                 providerSwitchRefreshing || providerSwitchRemainingMs <= 0
-                  ? colors.accent
+                  ? colors.accentText
                   : colors.textMuted,
             },
           ]}
@@ -179,7 +193,7 @@ export function ProviderSelector({
           duration={motion.duration.popover}
           fromScale={motion.scale.surfaceEnter}
           fromTranslateY={motion.offset.popover}
-          onAccessibilityEscape={() => setMenuVisible(false)}
+          onAccessibilityEscape={dismissPopovers}
           style={[
             styles.menu,
             {
@@ -215,13 +229,13 @@ export function ProviderSelector({
                 <Text
                   style={[
                     styles.optionLabel,
-                    { color: isSelected ? colors.accent : colors.text },
+                    { color: isSelected ? colors.accentText : colors.text },
                   ]}
                 >
                   {provider.name}
                 </Text>
                 <View style={styles.check}>
-                  {isSelected ? <CheckIcon color={colors.accent} /> : null}
+                  {isSelected ? <CheckIcon color={colors.accentText} /> : null}
                 </View>
               </Pressable>
             );
@@ -235,7 +249,7 @@ export function ProviderSelector({
           duration={motion.duration.popover}
           fromScale={motion.scale.surfaceEnter}
           fromTranslateY={motion.offset.popover}
-          onAccessibilityEscape={() => setPoliciesOpen(false)}
+          onAccessibilityEscape={dismissPopovers}
           style={[
             styles.policyPopover,
             {
@@ -261,19 +275,19 @@ export function ProviderSelector({
               compact
               href={selected.privacyUrl}
               linkId={providerLinkId(selected.id, 'privacy')}
-              label="Privacy Policy"
+              label={`${selected.name} Privacy Policy`}
             />
             <ExternalLink
               compact
               href={selected.termsUrl}
               linkId={providerLinkId(selected.id, 'terms')}
-              label="Terms of Use"
+              label={`${selected.name} Terms of Use`}
             />
             <ExternalLink
               compact
               href={selected.documentationUrl}
               linkId={providerLinkId(selected.id, 'documentation')}
-              label="API documentation"
+              label={`${selected.name} API documentation`}
             />
           </View>
         </RevealView>
@@ -286,9 +300,18 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     minWidth: 240,
-    marginLeft: 'auto',
+    marginStart: 'auto',
+  },
+  dismissLayer: {
+    position: 'absolute',
+    top: -2000,
+    bottom: -2000,
+    start: -2000,
+    end: -2000,
+    zIndex: 1,
   },
   controls: {
+    zIndex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
@@ -327,10 +350,11 @@ const styles = StyleSheet.create({
   menu: {
     position: 'absolute',
     top: 50,
-    right: 52,
+    end: 52,
+    zIndex: 3,
     width: 188,
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: radii.control,
     borderCurve: 'continuous',
     overflow: 'hidden',
     transformOrigin: 'top right',
@@ -354,10 +378,11 @@ const styles = StyleSheet.create({
     height: 18,
   },
   switchStatus: {
+    zIndex: 2,
     paddingTop: spacing.xs,
-    paddingRight: 52,
-    fontSize: 11,
-    lineHeight: 15,
+    paddingEnd: 52,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
     fontVariant: ['tabular-nums'],
     textAlign: 'right',
@@ -365,10 +390,11 @@ const styles = StyleSheet.create({
   policyPopover: {
     position: 'absolute',
     top: 50,
-    right: 0,
+    end: 0,
+    zIndex: 3,
     width: 310,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radii.card,
     borderCurve: 'continuous',
     padding: spacing.lg,
     gap: spacing.sm,
