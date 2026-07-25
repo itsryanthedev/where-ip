@@ -3,6 +3,7 @@ import {
   formatCountdown,
   formatLocation,
   formatLocationMeta,
+  formatTimezoneLocalTime,
   inferIpVersion,
   isUsablePublicIp,
 } from '@/utils/ip';
@@ -72,6 +73,15 @@ describe('IP utilities', () => {
     );
     expect(formatLocationMeta('95110')).toBe('Postal 95110');
     expect(formatLocationMeta()).toBeUndefined();
+  });
+
+  test('formats an estimated local time for a timezone', () => {
+    const now = new Date('2026-07-25T13:14:00.000Z');
+    expect(formatTimezoneLocalTime('America/Los_Angeles', now)).toMatch(
+      /6:14/,
+    );
+    expect(formatTimezoneLocalTime(undefined, now)).toBeUndefined();
+    expect(formatTimezoneLocalTime('Not/A_Zone', now)).toBeUndefined();
   });
 
   test('formats a stable minute countdown', () => {

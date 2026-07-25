@@ -36,6 +36,7 @@ import {
   countryCodeToFlag,
   formatLocation,
   formatLocationMeta,
+  formatTimezoneLocalTime,
   formatLookupTime,
 } from '@/utils/ip';
 
@@ -61,6 +62,29 @@ function HomeHeaderAboutButton() {
         <InfoIcon color={colors.accent} size={25} />
       </TactilePressable>
     </Link>
+  );
+}
+
+function TimezoneDetailCard({ timezone }: { timezone?: string }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!timezone) {
+      return;
+    }
+
+    const timer = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(timer);
+  }, [timezone]);
+
+  const localTime = formatTimezoneLocalTime(timezone, now);
+
+  return (
+    <DetailCard
+      label="Timezone"
+      supportingText={localTime}
+      value={timezone ?? 'Unavailable'}
+    />
   );
 }
 
@@ -425,11 +449,7 @@ export function Home() {
                 fromTranslateY={motion.offset.content}
                 style={styles.detailGrid}
               >
-                <DetailCard
-                  label="Timezone"
-                  supportingText="Local time zone for this approximate location"
-                  value={result.timezone ?? 'Unavailable'}
-                />
+                <TimezoneDetailCard timezone={result.timezone} />
                 <View
                   style={[
                     styles.refreshCard,

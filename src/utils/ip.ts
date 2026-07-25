@@ -159,6 +159,26 @@ export function formatLocationMeta(
   return parts.length > 0 ? parts.join(' · ') : undefined;
 }
 
+export function formatTimezoneLocalTime(
+  timezone?: string,
+  now: Date = new Date(),
+): string | undefined {
+  if (!timezone) {
+    return undefined;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      timeZone: timezone,
+      weekday: 'short',
+      hour: 'numeric',
+      minute: '2-digit',
+    }).format(now);
+  } catch {
+    return undefined;
+  }
+}
+
 export function formatLookupTime(isoDate?: string): string {
   if (!isoDate) {
     return 'Not checked yet';
