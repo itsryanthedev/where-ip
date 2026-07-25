@@ -207,7 +207,7 @@ export function Home() {
                 Checking your public connection…
               </Text>
               <Text style={[styles.loadingDescription, { color: colors.textMuted }]}>
-                IPinfo is tried first. A fallback is used only if needed.
+                ipwho.is is tried first. A fallback is used only if needed.
               </Text>
             </View>
           ) : result ? (

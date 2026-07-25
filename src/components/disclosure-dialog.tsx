@@ -76,8 +76,8 @@ export function DisclosureDialog() {
               </Text>
               <Text selectable style={[styles.body, { color: colors.textMuted }]}>
                 To show your public IP and approximate IP-based location, your
-                device contacts IPinfo directly. If it is unavailable, WhereIP may
-                try FreeIPAPI and then ipwho.is. Every contacted provider
+                device contacts ipwho.is directly. If it is unavailable, WhereIP
+                may try FreeIPAPI and then IPinfo. Every contacted provider
                 necessarily receives your public IP and applies its own policies.
               </Text>
               <Text selectable style={[styles.body, { color: colors.textMuted }]}>

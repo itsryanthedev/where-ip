@@ -83,7 +83,7 @@ export function About() {
 
           <Section title="Choose your provider">
             <Text selectable style={[styles.body, { color: colors.textMuted }]}>
-              IPinfo is the default. Your preference stays on this device. Use
+              ipwho.is is the default. Your preference stays on this device. Use
               each provider’s information control to inspect its official
               Privacy Policy and Terms of Use.
             </Text>

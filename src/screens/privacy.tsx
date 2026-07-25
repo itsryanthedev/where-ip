@@ -45,10 +45,10 @@ export function Privacy() {
           </PolicySection>
 
           <PolicySection title="Third-party providers">
-            IPinfo is the default. If it cannot return a usable result, WhereIP
-            may contact FreeIPAPI and then ipwho.is. You may select another
-            preferred provider. Each service operates independently and applies
-            its own privacy policy and terms.
+            ipwho.is is the default. If it cannot return a usable result,
+            WhereIP may contact FreeIPAPI and then IPinfo. You may select
+            another preferred provider. Each service operates independently and
+            applies its own privacy policy and terms.
           </PolicySection>
 
           <View style={styles.providerPolicies}>
