@@ -42,7 +42,7 @@ pnpm dlx expo-doctor
 - [ ] Update `expo.version`.
 - [ ] Increment `ios.buildNumber`.
 - [ ] Increment `android.versionCode`.
-- [ ] Confirm bundle/package ID is `com.itsryanthedev.whereip`.
+- [ ] Confirm bundle/package ID is `com.elmowjastudio.whereip`.
 - [ ] Confirm the Expo account owner and add the EAS project ID.
 - [ ] Produce signed production builds through EAS.
 - [ ] Run an internal distribution build on physical iOS and Android devices.

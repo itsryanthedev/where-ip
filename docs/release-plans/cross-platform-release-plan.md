@@ -175,10 +175,10 @@ App Store Connect, with current agreements accepted.
 ### 4.3 Create identifiers
 
 - [ ] Confirm the iOS/iPadOS bundle identifier:
-      `com.itsryanthedev.whereip`.
+      `com.elmowjastudio.whereip`.
 - [ ] Create or confirm an explicit App ID for that identifier.
 - [ ] Create a separate macOS App ID, currently recommended as
-      `com.itsryanthedev.whereip.macos`.
+      `com.elmowjastudio.whereip.macos`.
 - [ ] Enable only capabilities used by the final applications.
 - [ ] Keep iOS and macOS entitlements separate.
 - [ ] Record public identifiers in the repository only after they are final.
@@ -288,7 +288,7 @@ apps.
 
 - [ ] Create the app with the final default language, app name, free/paid
       choice, and policy declarations.
-- [ ] Use package name `com.itsryanthedev.whereip`; treat it as permanent after
+- [ ] Use package name `com.elmowjastudio.whereip`; treat it as permanent after
       first upload.
 - [ ] Complete the app dashboard tasks that apply to a public network utility.
 - [ ] Configure support email, website, and a public non-geofenced HTTPS privacy
@@ -553,7 +553,7 @@ Then:
 ### 8.1 First release only
 
 - [ ] Complete Apple setup in section 4.
-- [ ] Confirm `com.itsryanthedev.whereip`.
+- [ ] Confirm `com.elmowjastudio.whereip`.
 - [ ] Confirm `supportsTablet` remains enabled.
 - [ ] Audit the generated `Info.plist` and permission descriptions.
 - [ ] Confirm the current minimum iOS/iPadOS versions.
@@ -661,7 +661,7 @@ publishing plan exists.
 ### 10.1 First release only
 
 - [ ] Complete Google setup in section 5.
-- [ ] Confirm package name `com.itsryanthedev.whereip`.
+- [ ] Confirm package name `com.elmowjastudio.whereip`.
 - [ ] Inspect the generated Android manifest and permission list.
 - [ ] Confirm the current minimum Android version and target API rule.
 - [ ] Upload the first AAB manually and enroll in Play App Signing.
