@@ -26,14 +26,16 @@ export function Privacy() {
             WhereIP Privacy Policy
           </Text>
           <Text style={[styles.effectiveDate, { color: colors.textMuted }]}>
-            Effective July 25, 2026
+            Effective July 26, 2026
           </Text>
 
           <PolicySection featured title="The short version">
             WhereIP does not operate a backend, create accounts, show ads, run
             analytics, track you, or request GPS access. The app asks a
             third-party IP information provider for your public network
-            information and displays the response on your device.
+            information and displays the response on your device. That provider
+            necessarily receives your public IP, which European privacy law
+            generally treats as personal data.
           </PolicySection>
 
           <PolicySection title="Information processed">
@@ -100,6 +102,8 @@ export function Privacy() {
             to include in the public GitHub issue.
           </PolicySection>
 
+          <GdprSection />
+
           <PolicySection title="Changes">
             Material changes to this policy will be published with the source
             code and reflected in a new effective date. Provider policies can
@@ -125,6 +129,100 @@ export function Privacy() {
         </View>
       </ScrollView>
     </>
+  );
+}
+
+function GdprSection() {
+  const colors = useAppColors();
+
+  return (
+    <View
+      style={[
+        styles.gdprSection,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
+        },
+      ]}
+    >
+      <Text accessibilityRole="header" style={[styles.heading, { color: colors.text }]}>
+        GDPR
+      </Text>
+      <Text selectable style={[styles.body, { color: colors.textMuted }]}>
+        This section explains how WhereIP relates to the EU General Data
+        Protection Regulation (GDPR) and comparable UK privacy rules. It
+        describes the app’s design in plain language and is not legal advice.
+      </Text>
+
+      <GdprTopic title="Personal data involved">
+        When you run a lookup, the contacted provider receives the public IP
+        address used for that HTTPS request and may observe ordinary request
+        metadata. The response may include approximate location and network
+        identifiers derived from that IP. WhereIP does not collect names, email
+        addresses, accounts, advertising identifiers, or GPS location.
+      </GdprTopic>
+
+      <GdprTopic title="Who processes what">
+        WhereIP has no developer-operated backend and does not receive lookup
+        traffic on a WhereIP server. Acknowledgement, preference, cool-off, and
+        cache values stay on this device. Each provider processes the request
+        under its own privacy policy; WhereIP does not control their retention
+        or secondary uses.
+      </GdprTopic>
+
+      <GdprTopic title="Why the lookup happens">
+        Your public IP is disclosed to a provider only so WhereIP can show the
+        public network information you asked for, after you acknowledge the
+        first-run disclosure and continue. WhereIP does not use lookups for
+        advertising, profiling, analytics products, or selling data.
+      </GdprTopic>
+
+      <GdprTopic title="Cookies, analytics, and consent banners">
+        WhereIP embeds no advertising, analytics, or tracking SDKs. The first-run
+        dialog explains the provider request before the first lookup; it is not
+        a cookie or marketing-consent banner. Local storage exists to remember
+        your acknowledgement, preference, cool-offs, and a short-lived result.
+      </GdprTopic>
+
+      <GdprTopic title="Your choices and rights">
+        You can decline to continue past the first-run disclosure, choose a
+        preferred provider, or clear app data or uninstall to remove on-device
+        cache and settings. Because WhereIP keeps no server copy of lookups,
+        there is no WhereIP account profile to export or delete. For data a
+        provider may hold, use that provider’s official privacy contact. European
+        privacy law may also give you rights such as access, erasure, or
+        complaint to a supervisory authority, depending on your situation and on
+        who holds the relevant data.
+      </GdprTopic>
+
+      <GdprTopic title="International providers">
+        Providers may process requests outside your country, including outside
+        the European Economic Area. Their linked policies describe those
+        arrangements. WhereIP cannot change them from the client app.
+      </GdprTopic>
+    </View>
+  );
+}
+
+function GdprTopic({
+  title,
+  children,
+}: {
+  title: string;
+  children: string;
+}) {
+  const colors = useAppColors();
+
+  return (
+    <View style={styles.gdprTopic}>
+      <Text accessibilityRole="header" style={[styles.gdprTopicTitle, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text selectable style={[styles.body, { color: colors.textMuted }]}>
+        {children}
+      </Text>
+    </View>
   );
 }
 
@@ -191,6 +289,22 @@ const styles = StyleSheet.create({
     borderRadius: radii.section,
     borderCurve: 'continuous',
     padding: spacing.xl,
+  },
+  gdprSection: {
+    borderWidth: 1,
+    borderRadius: radii.section,
+    borderCurve: 'continuous',
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  gdprTopic: {
+    gap: spacing.xs,
+  },
+  gdprTopicTitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '700',
+    letterSpacing: -0.1,
   },
   heading: {
     fontSize: 20,
