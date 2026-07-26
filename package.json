@@ -55,7 +55,7 @@
     "assets:generate": "node ./scripts/generate-assets.mjs",
     "export:web": "expo export --platform web",
     "export:web:pages": "EXPO_WEB_BASE_URL=/where-ip expo export --platform web --output-dir dist-pages",
-    "export:desktop": "EXPO_WEB_BASE_URL=/ expo export --platform web --output-dir dist-desktop",
+    "export:desktop": "node ./scripts/export-desktop.mjs",
     "electron:start": "pnpm run export:desktop && electron electron/main/index.cjs",
     "electron:package": "pnpm run export:desktop && node ./scripts/package-desktop.mjs",
     "electron:package:forge": "pnpm run export:desktop && electron-forge package",
