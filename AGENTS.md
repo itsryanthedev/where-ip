@@ -160,14 +160,16 @@ when a scoped environment credential is sufficient.
 
 ## Electron security
 
-Electron is deferred, but any future implementation must begin with:
+The desktop shell under `electron/` is implemented and must keep these
+controls enabled:
 
 - `contextIsolation: true`;
 - `sandbox: true`;
 - `nodeIntegration: false`;
 - no deprecated `remote` module;
 - a narrowly scoped, typed preload API;
-- explicit IPC channel allowlists and validation of every argument;
+- explicit IPC channel allowlists, trusted-sender checks, and validation of
+  every argument;
 - denial of unexpected navigation, popups, permissions, and external protocols;
 - a restrictive Content Security Policy;
 - no direct renderer access to the filesystem, shell, arbitrary processes,

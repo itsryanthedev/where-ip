@@ -1,0 +1,21 @@
+# Socket for GitHub — full PR coverage for public OSS.
+# Docs: https://docs.socket.dev/docs/socket-yml
+# Quota / later tightening: see SOCKET.md next to this file.
+version: 2
+
+# Omit triggerPaths so any pull-request file change can run Socket alerts
+# (Socket default is ["*"]). Manifest ingestion still follows projectIgnorePaths.
+
+projectIgnorePaths:
+  - "dist"
+  - "dist-desktop"
+  - "dist-pages"
+  - "out"
+  - "coverage"
+
+githubApp:
+  enabled: true
+  dependencyOverviewEnabled: true
+  projectReportsEnabled: true
+  pullRequestAlertsEnabled: true
+  ignoreUsers: []

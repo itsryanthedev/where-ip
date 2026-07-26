@@ -44,5 +44,9 @@ jobs:
           # Keep default CI free of the Electron binary download; desktop-ci installs it.
           ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
 
+      - name: Audit dependencies (advisory)
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
+
       - name: Verify
         run: pnpm verify

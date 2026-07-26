@@ -102,16 +102,30 @@ For the public GitHub repository:
 
 1. Enable Secret Protection and secret-scanning alerts.
 2. Enable repository push protection.
-3. Protect `main` with branch protection or a branch ruleset, and protect
-   SemVer release tags (`v*`) with an Active tag ruleset that restricts
-   create, update, and delete (repository admin bypass only). Import
-   `.github/rulesets/protect-release-tags.json` from Settings → Rules →
-   Rulesets; do not use deprecated protected tags.
-4. Enable review from CODEOWNERS where the collaboration model permits it.
-5. Create protected environments for every publishing channel.
-6. Keep default workflow permissions read-only.
-7. Grant write permissions only to the job that performs a release action.
-8. Never execute fork-controlled code from `pull_request_target` with secrets.
+3. Protect the default branch with an Active branch ruleset. Prefer updating
+   the live ruleset via `gh api` (see `.github/rulesets/protect-main.json` as
+   the intended shape: PR required, CODEOWNERS review, `verify` plus
+   `dependency-review` checks, admin bypass only through pull requests).
+   Protect SemVer release tags (`v*`) with an Active tag ruleset that
+   restricts create, update, and delete (repository admin bypass only).
+   Import `.github/rulesets/protect-release-tags.json` from Settings → Rules
+   → Rulesets, or apply it with `gh api`; do not use deprecated protected
+   tags.
+4. After Socket Security posts its first check on a pull request, add that
+   check name to the `protect-main` required status checks so risky
+   dependency findings can block merge.
+5. Enable review from CODEOWNERS where the collaboration model permits it.
+6. Create protected environments for every publishing channel.
+7. Keep default workflow permissions read-only.
+8. Grant write permissions only to the job that performs a release action.
+9. Never execute fork-controlled code from `pull_request_target` with secrets.
+
+Socket and CodeRabbit are installed as GitHub Apps for selected public
+repositories. They review pull requests (including from forks). They do not
+replace branch protection: require their checks (or CI) to pass before merge.
+Repository config lives in `socket.yml` and `.coderabbit.yaml`. See
+`SOCKET.md` for the current broad Socket setup and how to tighten it later
+if usage or noise becomes a problem.
 
 ## If a secret is exposed
 

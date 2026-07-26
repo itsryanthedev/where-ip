@@ -10,6 +10,10 @@ const { resolveAllowedLink, isDesktopLinkId } = require('../shared/links.cjs');
 const { isProviderId, PROVIDERS } = require('../shared/providers.cjs');
 const { resolveProtocolPath } = require('../shared/protocol.cjs');
 const { parseProviderResponse } = require('../shared/provider-lookup.cjs');
+const {
+  assertTrustedIpcSender,
+  isTrustedIpcSender,
+} = require('../shared/ipc-trust.cjs');
 
 describe('desktop allowlists', () => {
   it('accepts known provider IDs and rejects unknown ones', () => {
@@ -101,6 +105,27 @@ describe('provider response parsing in the shell', () => {
     assert.throws(
       () => parseProviderResponse('not-a-provider', { ip: '1.1.1.1' }),
       /Unknown provider/,
+    );
+  });
+});
+
+describe('IPC sender trust', () => {
+  it('accepts the trusted main-window webContents', () => {
+    const trusted = { isDestroyed: () => false };
+    assert.equal(isTrustedIpcSender({ sender: trusted }, trusted), true);
+  });
+
+  it('rejects foreign or missing senders', () => {
+    const trusted = { isDestroyed: () => false };
+    assert.equal(isTrustedIpcSender({ sender: {} }, trusted), false);
+    assert.equal(isTrustedIpcSender({ sender: trusted }, null), false);
+    assert.equal(
+      isTrustedIpcSender({ sender: trusted }, { isDestroyed: () => true }),
+      false,
+    );
+    assert.throws(
+      () => assertTrustedIpcSender({ sender: {} }, trusted),
+      /Untrusted IPC sender/,
     );
   });
 });
