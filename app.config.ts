@@ -47,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       bundleIdentifier: 'com.itsryanthedev.whereip',
-      buildNumber: '2',
+      buildNumber: '3',
       icon: './assets/images/app-icon.png',
       supportsTablet: true,
       infoPlist: {
@@ -56,7 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: 'com.itsryanthedev.whereip',
-      versionCode: 2,
+      versionCode: 3,
       allowBackup: false,
       blockedPermissions: [
         'android.permission.READ_EXTERNAL_STORAGE',

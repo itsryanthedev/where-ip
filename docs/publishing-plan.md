@@ -206,7 +206,11 @@ account because Google may change it.
   - `google-play`;
   - `microsoft-store`.
 - Require a human reviewer for public store/release environments.
-- Protect `main` and version tags.
+- Protect `main` with branch protection or a branch ruleset.
+- Protect SemVer release tags (`vX.Y.Z` / `vX.Y.Z-rc.N`) with an Active tag
+  ruleset on `v*` that restricts create, update, and delete, with repository
+  admin bypass only. Import `.github/rulesets/protect-release-tags.json`
+  from Settings → Rules → Rulesets; do not use deprecated protected tags.
 - Require the CI workflow before merge.
 
 ## 5. Versioning and release identity
