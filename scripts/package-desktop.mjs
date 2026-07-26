@@ -34,18 +34,31 @@ function electronCacheRoot() {
   return path.join(os.homedir(), '.cache', 'electron');
 }
 
-function findCachedElectronZip(version, platform, arch) {
-  const fileName = `electron-v${version}-${platform}-${arch}.zip`;
-  const cacheRoot = electronCacheRoot();
-  if (!fs.existsSync(cacheRoot)) {
+function ensureElectronBinaryDownloaded() {
+  const installScript = require.resolve('electron/install.js');
+  const env = { ...process.env };
+  delete env.ELECTRON_SKIP_BINARY_DOWNLOAD;
+  const result = spawnSync(process.execPath, [installScript], {
+    encoding: 'utf8',
+    env,
+  });
+  if (result.status !== 0) {
     throw new Error(
-      `Electron cache not found at ${cacheRoot}. Run pnpm install so Electron can download once.`,
+      result.stderr ||
+        result.stdout ||
+        'Failed to download the Electron binary via electron/install.js',
     );
   }
+}
 
+function locateCachedElectronZip(cacheRoot, fileName) {
   const direct = path.join(cacheRoot, fileName);
   if (fs.existsSync(direct)) {
     return direct;
+  }
+
+  if (!fs.existsSync(cacheRoot)) {
+    return null;
   }
 
   for (const entry of fs.readdirSync(cacheRoot, { withFileTypes: true })) {
@@ -56,6 +69,26 @@ function findCachedElectronZip(version, platform, arch) {
     if (fs.existsSync(candidate)) {
       return candidate;
     }
+  }
+
+  return null;
+}
+
+function findCachedElectronZip(version, platform, arch) {
+  const fileName = `electron-v${version}-${platform}-${arch}.zip`;
+  const cacheRoot = electronCacheRoot();
+  const existing = locateCachedElectronZip(cacheRoot, fileName);
+  if (existing) {
+    return existing;
+  }
+
+  // Regular CI may skip Electron's postinstall via ELECTRON_SKIP_BINARY_DOWNLOAD
+  // and pnpm can cache that skipped side effect. Download once here.
+  ensureElectronBinaryDownloaded();
+
+  const downloaded = locateCachedElectronZip(cacheRoot, fileName);
+  if (downloaded) {
+    return downloaded;
   }
 
   throw new Error(

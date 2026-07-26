@@ -2,7 +2,9 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
+const os = require('node:os');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const { resolveAllowedLink, isDesktopLinkId } = require('../shared/links.cjs');
 const { isProviderId, PROVIDERS } = require('../shared/providers.cjs');
@@ -31,7 +33,8 @@ describe('desktop allowlists', () => {
 });
 
 describe('custom protocol path resolution', () => {
-  const distRoot = path.join('/tmp', 'whereip-dist-desktop');
+  // path.resolve so Windows expectations match resolveProtocolPath (drive letter).
+  const distRoot = path.resolve(os.tmpdir(), 'whereip-dist-desktop');
 
   it('maps the app root to index.html', () => {
     const resolved = resolveProtocolPath(distRoot, 'whereip://app/');
@@ -73,7 +76,7 @@ describe('custom protocol path resolution', () => {
   it('rejects file URLs', () => {
     const resolved = resolveProtocolPath(
       distRoot,
-      'file:///tmp/whereip-dist-desktop/index.html',
+      pathToFileURL(path.join(distRoot, 'index.html')).href,
     );
     assert.ok('error' in resolved);
   });
