@@ -77,8 +77,13 @@ export function TactilePressable({
     onPressOut?.(event);
   };
 
+  // RN core types only include `pressed`. Expo's react-native-web
+  // augmentation also requires `hovered`. Assert so typecheck works in
+  // both environments when resolving layout for the animated host.
   const resolvedStyle =
-    typeof style === 'function' ? style({ pressed, hovered: false }) : style;
+    typeof style === 'function'
+      ? style({ pressed, hovered: false } as PressableStateCallbackType)
+      : style;
   const hostStyle = layoutHostStyle(resolvedStyle);
 
   return (
