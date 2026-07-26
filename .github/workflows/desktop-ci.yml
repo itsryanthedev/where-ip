@@ -65,18 +65,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Regular CI sets ELECTRON_SKIP_BINARY_DOWNLOAD=1, and pnpm may reuse that
-      # skipped postinstall from the shared store side-effects cache. Force the
-      # Electron binary download here so package-desktop.mjs can find the zip.
-      - name: Download Electron binary
-        run: node node_modules/electron/install.js
-
       - name: Run desktop allowlist tests
         run: pnpm run electron:test
 
       - name: Export desktop web bundle
         run: pnpm run export:desktop
 
+      # package-desktop.mjs downloads the Electron zip via @electron/get when needed.
       - name: Package unsigned desktop app
         run: node ./scripts/package-desktop.mjs
 
