@@ -1,0 +1,23 @@
+# Socket for GitHub — lean Free-tier config for public OSS.
+# Docs: https://docs.socket.dev/docs/socket-yml
+version: 2
+
+triggerPaths:
+  - "package.json"
+  - "pnpm-lock.yaml"
+  - "pnpm-workspace.yaml"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "socket.yml"
+
+projectIgnorePaths:
+  - "dist"
+  - "dist-desktop"
+  - "dist-pages"
+  - "out"
+  - "coverage"
+
+githubApp:
+  enabled: true
+  dependencyOverviewEnabled: true
+  ignoreUsers: []

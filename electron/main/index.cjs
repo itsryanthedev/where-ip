@@ -14,6 +14,7 @@ const {
 } = require('electron');
 
 const { IPC_CHANNELS } = require('../shared/ipc-channels.cjs');
+const { assertTrustedIpcSender } = require('../shared/ipc-trust.cjs');
 const { resolveAllowedLink } = require('../shared/links.cjs');
 const { lookupPublicIp } = require('../shared/provider-lookup.cjs');
 const {
@@ -143,11 +144,13 @@ function applyContentSecurityPolicy() {
 }
 
 function registerIpcHandlers() {
-  ipcMain.handle(IPC_CHANNELS.lookupPublicIp, async (_event, providerId) => {
+  ipcMain.handle(IPC_CHANNELS.lookupPublicIp, async (event, providerId) => {
+    assertTrustedIpcSender(event, mainWindow?.webContents);
     return lookupPublicIp(providerId);
   });
 
-  ipcMain.handle(IPC_CHANNELS.openExternalLink, async (_event, linkId) => {
+  ipcMain.handle(IPC_CHANNELS.openExternalLink, async (event, linkId) => {
+    assertTrustedIpcSender(event, mainWindow?.webContents);
     const url = resolveAllowedLink(linkId);
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:') {
@@ -157,6 +160,7 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on(IPC_CHANNELS.getAppVersion, (event) => {
+    assertTrustedIpcSender(event, mainWindow?.webContents);
     event.returnValue = app.getVersion();
   });
 }

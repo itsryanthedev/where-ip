@@ -9,6 +9,9 @@
 /electron-forge.config.cjs @itsryanthedev
 /package.json @itsryanthedev
 /pnpm-lock.yaml @itsryanthedev
+/pnpm-workspace.yaml @itsryanthedev
+/socket.yml @itsryanthedev
+/.coderabbit.yaml @itsryanthedev
 /SECURITY.md @itsryanthedev
 /scripts/check-secrets.mjs @itsryanthedev
 /scripts/package-desktop.mjs @itsryanthedev

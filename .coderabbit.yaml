@@ -1,0 +1,36 @@
+# CodeRabbit — keep reviews focused on app/security surfaces.
+# Docs: https://docs.coderabbit.ai/configuration/yaml-configuration
+language: en-US
+early_access: false
+
+reviews:
+  profile: assertive
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  path_filters:
+    - "!**/pnpm-lock.yaml"
+    - "!**/dist/**"
+    - "!**/dist-desktop/**"
+    - "!**/dist-pages/**"
+    - "!**/out/**"
+    - "!**/coverage/**"
+  path_instructions:
+    - path: "pnpm-workspace.yaml"
+      instructions: >
+        Flag any weakening of supply-chain controls such as lowering or removing
+        minimumReleaseAge, disabling blockExoticSubdeps or trustLockfile:false,
+        or broadening allowBuilds without a clear justification.
+    - path: ".github/workflows/**"
+      instructions: >
+        Flag pull_request_target, secrets exposure, write permissions on
+        untrusted jobs, or unpinned third-party actions (non-SHA refs).
+    - path: "electron/**"
+      instructions: >
+        Preserve Electron hardening: contextIsolation, sandbox, no
+        nodeIntegration, IPC allowlists, CSP, and navigation/permission denials.
+
+chat:
+  auto_reply: true
