@@ -102,7 +102,11 @@ For the public GitHub repository:
 
 1. Enable Secret Protection and secret-scanning alerts.
 2. Enable repository push protection.
-3. Protect `main` and stable release tags.
+3. Protect `main` with branch protection or a branch ruleset, and protect
+   SemVer release tags (`v*`) with an Active tag ruleset that restricts
+   create, update, and delete (repository admin bypass only). Import
+   `.github/rulesets/protect-release-tags.json` from Settings → Rules →
+   Rulesets; do not use deprecated protected tags.
 4. Enable review from CODEOWNERS where the collaboration model permits it.
 5. Create protected environments for every publishing channel.
 6. Keep default workflow permissions read-only.

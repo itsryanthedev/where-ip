@@ -371,7 +371,11 @@ dependency, signing method, or provider changes.
 ### 6.2 GitHub repository protections
 
 - [ ] Keep default workflow permissions read-only.
-- [ ] Protect `main` and stable release tags.
+- [ ] Protect `main` with branch protection or a branch ruleset.
+- [ ] Protect SemVer release tags (`v*`) with an Active tag ruleset that
+      restricts create, update, and delete (repository admin bypass only).
+      Import `.github/rulesets/protect-release-tags.json` from Settings →
+      Rules → Rulesets; do not use deprecated protected tags.
 - [ ] Require the ordinary CI workflow before merge.
 - [ ] Enable secret scanning and push protection.
 - [ ] Enable dependency review and an update process for workflow actions.
