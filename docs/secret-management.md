@@ -102,14 +102,15 @@ For the public GitHub repository:
 
 1. Enable Secret Protection and secret-scanning alerts.
 2. Enable repository push protection.
-3. Protect `main` with an Active branch ruleset. Import
-   `.github/rulesets/protect-main.json` from Settings → Rules → Rulesets
-   (requires a PR, CODEOWNERS review, and the `verify` plus
-   `dependency-review` status checks). Protect SemVer release tags (`v*`)
-   with an Active tag ruleset that restricts create, update, and delete
-   (repository admin bypass only). Import
-   `.github/rulesets/protect-release-tags.json` the same way; do not use
-   deprecated protected tags.
+3. Protect the default branch with an Active branch ruleset. Prefer updating
+   the live ruleset via `gh api` (see `.github/rulesets/protect-main.json` as
+   the intended shape: PR required, CODEOWNERS review, `verify` plus
+   `dependency-review` checks, admin bypass only through pull requests).
+   Protect SemVer release tags (`v*`) with an Active tag ruleset that
+   restricts create, update, and delete (repository admin bypass only).
+   Import `.github/rulesets/protect-release-tags.json` from Settings → Rules
+   → Rulesets, or apply it with `gh api`; do not use deprecated protected
+   tags.
 4. After Socket Security posts its first check on a pull request, add that
    check name to the `protect-main` required status checks so risky
    dependency findings can block merge.
