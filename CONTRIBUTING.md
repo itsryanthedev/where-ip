@@ -34,7 +34,10 @@ review when they change:
 
 - `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
 - `.github/workflows/**`
-- `socket.yml`, `.coderabbit.yaml`
+- `.github/rulesets/**`
+- `.github/CODEOWNERS`
+- `.githooks/**`
+- `socket.yml`, `SOCKET.md`, `.coderabbit.yaml`
 
 Do not weaken `minimumReleaseAge`, `blockExoticSubdeps`, `trustLockfile`, or
 `allowBuilds` in a PR unless the change is intentional, documented, and

@@ -122,7 +122,9 @@ For the public GitHub repository:
 Socket and CodeRabbit are installed as GitHub Apps for selected public
 repositories. They review pull requests (including from forks). They do not
 replace branch protection: require their checks (or CI) to pass before merge.
-Repository config lives in `socket.yml` and `.coderabbit.yaml`.
+Repository config lives in `socket.yml` and `.coderabbit.yaml`. See
+`SOCKET.md` for the current broad Socket setup and how to tighten it later
+if usage or noise becomes a problem.
 
 ## If a secret is exposed
 

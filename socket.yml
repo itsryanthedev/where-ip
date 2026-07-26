@@ -1,14 +1,10 @@
-# Socket for GitHub — lean Free-tier config for public OSS.
+# Socket for GitHub — full PR coverage for public OSS.
 # Docs: https://docs.socket.dev/docs/socket-yml
+# Quota / later tightening: see SOCKET.md next to this file.
 version: 2
 
-triggerPaths:
-  - "package.json"
-  - "pnpm-lock.yaml"
-  - "pnpm-workspace.yaml"
-  - "package-lock.json"
-  - "yarn.lock"
-  - "socket.yml"
+# Omit triggerPaths so any pull-request file change can run Socket alerts
+# (Socket default is ["*"]). Manifest ingestion still follows projectIgnorePaths.
 
 projectIgnorePaths:
   - "dist"
@@ -20,4 +16,6 @@ projectIgnorePaths:
 githubApp:
   enabled: true
   dependencyOverviewEnabled: true
+  projectReportsEnabled: true
+  pullRequestAlertsEnabled: true
   ignoreUsers: []

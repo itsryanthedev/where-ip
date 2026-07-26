@@ -11,6 +11,7 @@
 /pnpm-lock.yaml @itsryanthedev
 /pnpm-workspace.yaml @itsryanthedev
 /socket.yml @itsryanthedev
+/SOCKET.md @itsryanthedev
 /.coderabbit.yaml @itsryanthedev
 /SECURITY.md @itsryanthedev
 /scripts/check-secrets.mjs @itsryanthedev
