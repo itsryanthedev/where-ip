@@ -33,6 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: 'WhereIP',
     slug: 'where-ip',
+    owner: 'el-mowja-studio',
     description:
       'A free, open-source view of your public IP and approximate network location.',
     version: readPackageVersion(),
@@ -46,7 +47,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       policy: 'appVersion',
     },
     ios: {
-      bundleIdentifier: 'com.itsryanthedev.whereip',
+      bundleIdentifier: 'com.elmowjastudio.whereip',
       buildNumber: '3',
       icon: './assets/images/app-icon.png',
       supportsTablet: true,
@@ -55,7 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
     },
     android: {
-      package: 'com.itsryanthedev.whereip',
+      package: 'com.elmowjastudio.whereip',
       versionCode: 3,
       allowBackup: false,
       blockedPermissions: [

@@ -59,8 +59,8 @@ The resulting distribution matrix is:
 ### Already present
 
 - Expo Router with static web output.
-- iOS bundle identifier: `com.itsryanthedev.whereip`.
-- Android package name: `com.itsryanthedev.whereip`.
+- iOS bundle identifier: `com.elmowjastudio.whereip`.
+- Android package name: `com.elmowjastudio.whereip`.
 - iOS build number and Android version code.
 - EAS `development`, `preview`, and `production` build profiles.
 - Production build auto-increment through EAS.
@@ -143,9 +143,9 @@ Complete these before attempting automated production releases.
   are accurate.
 - Accept all current agreements in App Store Connect.
 - Create or confirm the iOS App ID for
-  `com.itsryanthedev.whereip`.
+  `com.elmowjastudio.whereip`.
 - Create a separate macOS App ID, recommended:
-  `com.itsryanthedev.whereip.macos`.
+  `com.elmowjastudio.whereip.macos`.
 - Create App Store Connect app records for iOS/iPadOS and macOS.
 - Reserve the final display name and SKU values.
 - Create an App Store Connect API key with only the roles required for upload
@@ -162,7 +162,7 @@ annual membership; verify the current price and local tax at enrollment.
 - For an organization, prepare the legal entity, website, and D-U-N-S details.
 - Complete the applicable Android developer identity-verification requirements.
 - Create the app record with package name
-  `com.itsryanthedev.whereip`.
+  `com.elmowjastudio.whereip`.
 - Enroll in Play App Signing and let Google manage the app-signing key.
 - Keep the separate upload key under EAS credential management.
 - Create a least-privilege Google service account for EAS Submit and grant it
@@ -483,7 +483,7 @@ rollback procedure.
 
 Retain:
 
-- bundle identifier `com.itsryanthedev.whereip`;
+- bundle identifier `com.elmowjastudio.whereip`;
 - no location permission;
 - `ITSAppUsesNonExemptEncryption: false`, subject to final export-compliance
   review;
@@ -564,7 +564,7 @@ proven reliable. Do not publish a first version to customers automatically.
 
 Retain:
 
-- package name `com.itsryanthedev.whereip`;
+- package name `com.elmowjastudio.whereip`;
 - production Android App Bundle output;
 - blocked unnecessary storage and overlay permissions;
 - adaptive and monochrome icons;

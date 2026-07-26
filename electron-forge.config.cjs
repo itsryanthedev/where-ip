@@ -15,7 +15,7 @@ module.exports = {
   packagerConfig: {
     name: 'WhereIP',
     executableName: 'WhereIP',
-    appBundleId: 'com.itsryanthedev.whereip',
+    appBundleId: 'com.elmowjastudio.whereip',
     asar: true,
     ignore: (filePath) => {
       if (!filePath) {
