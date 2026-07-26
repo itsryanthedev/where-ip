@@ -14,7 +14,10 @@ const {
 } = require('electron');
 
 const { IPC_CHANNELS } = require('../shared/ipc-channels.cjs');
-const { assertTrustedIpcSender } = require('../shared/ipc-trust.cjs');
+const {
+  assertTrustedIpcSender,
+  isTrustedIpcSender,
+} = require('../shared/ipc-trust.cjs');
 const { resolveAllowedLink } = require('../shared/links.cjs');
 const { lookupPublicIp } = require('../shared/provider-lookup.cjs');
 const {
@@ -160,7 +163,11 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on(IPC_CHANNELS.getAppVersion, (event) => {
-    assertTrustedIpcSender(event, mainWindow?.webContents);
+    // Sync IPC must not throw: reject untrusted callers with an empty return.
+    if (!isTrustedIpcSender(event, mainWindow?.webContents)) {
+      event.returnValue = undefined;
+      return;
+    }
     event.returnValue = app.getVersion();
   });
 }
