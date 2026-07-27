@@ -78,8 +78,8 @@ importers:
         specifier: 7.8.1
         version: 7.8.1(encoding@0.1.13)
       '@electron-forge/maker-zip':
-        specifier: 7.8.1
-        version: 7.8.1
+        specifier: 7.11.2
+        version: 7.11.2
       '@testing-library/react-native':
         specifier: ^14.0.1
         version: 14.0.1(jest@29.7.0(@types/node@26.1.1))(react-native@0.86.0(@babel/core@7.29.7)(@react-native/jest-preset@0.86.0(@babel/core@7.29.7)(react@19.2.3))(@react-native/metro-config@0.86.0(@babel/core@7.29.7))(@types/react@19.2.17)(react@19.2.3))(react@19.2.3)(test-renderer@1.2.0(@types/react@19.2.17)(react@19.2.3))
@@ -596,12 +596,16 @@ packages:
     resolution: {integrity: sha512-jkh0QPW5p0zmruu1E8+2XNufc4UMxy13WLJcm7hn9jbaXKLkMbKuEvhrN1tH/9uGp1mhr/t8sC4N67gP+gS87w==}
     engines: {node: '>= 16.4.0'}
 
+  '@electron-forge/maker-base@7.11.2':
+    resolution: {integrity: sha512-9934zYu9WVdgCYQXvtS+eL1oyLagsY8JlWhZmoK8yWTYftSAydH7jb3seVpfy6n85SYmY/yjcAy2lvOTy5dUwA==}
+    engines: {node: '>= 16.4.0'}
+
   '@electron-forge/maker-base@7.8.1':
     resolution: {integrity: sha512-GUZqschGuEBzSzE0bMeDip65IDds48DZXzldlRwQ+85SYVA6RMU2AwDDqx3YiYsvP2OuxKruuqIJZtOF5ps4FQ==}
     engines: {node: '>= 16.4.0'}
 
-  '@electron-forge/maker-zip@7.8.1':
-    resolution: {integrity: sha512-unIxEoV1lnK4BLVqCy3L2y897fTyg8nKY1WT4rrpv0MUKnQG4qmigDfST5zZNNHHaulEn/ElAic2GEiP7d6bhQ==}
+  '@electron-forge/maker-zip@7.11.2':
+    resolution: {integrity: sha512-FWnOm2MORX/nt8psnEtID3Vnt8Blby1NkzjU3KjXBPF9kave71C3lI8KbBbCeKKyTQ/S00i2FiglKdRWQ1WNTw==}
     engines: {node: '>= 16.4.0'}
 
   '@electron-forge/plugin-base@7.8.1':
@@ -610,6 +614,10 @@ packages:
 
   '@electron-forge/publisher-base@7.8.1':
     resolution: {integrity: sha512-z2C+C4pcFxyCXIFwXGDcxhU8qtVUPZa3sPL6tH5RuMxJi77768chLw2quDWk2/dfupcSELXcOMYCs7aLysCzeQ==}
+    engines: {node: '>= 16.4.0'}
+
+  '@electron-forge/shared-types@7.11.2':
+    resolution: {integrity: sha512-Tcles7y74xy3jN5dEC+Pt1duJYk4c7W2xu98tjWW8RewmfKD2uHkie6I1I3yifPFZXZ/QfTlaFOOoKIQ9ENZjg==}
     engines: {node: '>= 16.4.0'}
 
   '@electron-forge/shared-types@7.8.1':
@@ -635,6 +643,10 @@ packages:
   '@electron-forge/template-webpack@7.8.1':
     resolution: {integrity: sha512-DA77o9kTCHrq+W211pyNP49DyAt0d1mzMp2gisyNz7a+iKvlv2DsMAeRieLoCQ44akb/z8ZsL0YLteSjKLy4AA==}
     engines: {node: '>= 16.4.0'}
+
+  '@electron-forge/tracer@7.11.2':
+    resolution: {integrity: sha512-U8j5Hyj2Zt7I5PciJvPJfmEv69Gb/Da9v+k655z3Jj1cuY0UnToEJ61IhXrzlTYqo+jUKC+fgAjDJ6vltJTS0A==}
+    engines: {node: '>= 14.17.5'}
 
   '@electron-forge/tracer@7.8.1':
     resolution: {integrity: sha512-r2i7aHVp2fylGQSPDw3aTcdNfVX9cpL1iL2MKHrCRNwgrfR+nryGYg434T745GGm1rNQIv5Egdkh5G9xf00oWA==}
@@ -6547,6 +6559,15 @@ snapshots:
       - encoding
       - supports-color
 
+  '@electron-forge/maker-base@7.11.2':
+    dependencies:
+      '@electron-forge/shared-types': 7.11.2
+      fs-extra: 10.1.0
+      which: 2.0.2
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+
   '@electron-forge/maker-base@7.8.1':
     dependencies:
       '@electron-forge/shared-types': 7.8.1
@@ -6556,10 +6577,10 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@electron-forge/maker-zip@7.8.1':
+  '@electron-forge/maker-zip@7.11.2':
     dependencies:
-      '@electron-forge/maker-base': 7.8.1
-      '@electron-forge/shared-types': 7.8.1
+      '@electron-forge/maker-base': 7.11.2
+      '@electron-forge/shared-types': 7.11.2
       cross-zip: 4.0.1
       fs-extra: 10.1.0
       got: 11.8.6
@@ -6577,6 +6598,16 @@ snapshots:
   '@electron-forge/publisher-base@7.8.1':
     dependencies:
       '@electron-forge/shared-types': 7.8.1
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+
+  '@electron-forge/shared-types@7.11.2':
+    dependencies:
+      '@electron-forge/tracer': 7.11.2
+      '@electron/packager': 18.4.4
+      '@electron/rebuild': 3.7.2
+      listr2: 7.0.2
     transitivePeerDependencies:
       - bluebird
       - supports-color
@@ -6638,6 +6669,10 @@ snapshots:
     transitivePeerDependencies:
       - bluebird
       - supports-color
+
+  '@electron-forge/tracer@7.11.2':
+    dependencies:
+      chrome-trace-event: 1.0.4
 
   '@electron-forge/tracer@7.8.1':
     dependencies:
