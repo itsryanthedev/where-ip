@@ -49,12 +49,14 @@ https://github.com/itsryanthedev/where-ip/issues
 
 ## Marketing URL
 
-https://github.com/itsryanthedev/where-ip
+https://itsryanthedev.github.io/where-ip/
 
 ## Privacy policy URL
 
-Use the deployed web `/privacy` URL before submission. The source policy is
-maintained in `docs/privacy-policy.md`.
+https://itsryanthedev.github.io/where-ip/privacy
+
+The source policy is maintained in `docs/privacy-policy.md` and published with
+the GitHub Pages web app.
 
 ## Review notes
 

@@ -1,12 +1,14 @@
 # WhereIP Cross-Platform Release Plan
 
-**Status:** Operational planning document
+**Status:** Operational planning document — web channel live
 
-**Last reviewed:** 2026-07-24
+**Last reviewed:** 2026-07-26
 
 **Repository:** `itsryanthedev/where-ip`
 
 **Current application version:** `1.0.1`
+
+**Live web app:** <https://itsryanthedev.github.io/where-ip/>
 
 This runbook turns the broader
 [publishing plan](../publishing-plan.md) into repeatable setup and release
@@ -22,8 +24,10 @@ checklists for:
   those releases.
 
 It also covers creating the Apple and Google publishing projects from scratch.
-This file is a plan, not evidence that any account, credential, workflow, store
-record, Electron package, domain, or production deployment already exists.
+The GitHub Pages web app is live at
+`https://itsryanthedev.github.io/where-ip/`. This file remains a plan for the
+remaining store, signing, and Electron release work; it is not evidence that
+every account, credential, or store record already exists.
 
 ## 1. How to use this runbook
 
@@ -93,7 +97,8 @@ will become public.
 
 ### 2.3 Deferred Cloudflare phase
 
-GitHub Pages is the planned current web host. Cloudflare Pages, a dedicated
+GitHub Pages is the current web host at
+`https://itsryanthedev.github.io/where-ip/`. Cloudflare Pages, a dedicated
 domain, DNS changes, and Cloudflare credentials remain out of scope until the
 maintainer explicitly starts that phase.
 
@@ -123,7 +128,9 @@ binary under an existing version.
 Complete the release system in this order:
 
 1. Confirm the legal publisher, account types, ownership, and identifiers.
-2. Publish and validate the GitHub Pages site and stable privacy-policy URL.
+2. ~~Publish and validate the GitHub Pages site and stable privacy-policy URL.~~
+   Done: `https://itsryanthedev.github.io/where-ip/` and
+   `https://itsryanthedev.github.io/where-ip/privacy`.
 3. Create Apple, Google, Expo, GitHub, and Microsoft publishing foundations.
 4. Establish shared versioning, CI, release tags, and protected environments.
 5. Release iOS/iPadOS and Android candidates to TestFlight and Play testing.
@@ -133,8 +140,8 @@ Complete the release system in this order:
 9. Rehearse one coordinated tagged release across all active channels.
 10. Start the Cloudflare/domain migration only as a separately approved phase.
 
-Do not wait for Electron or Cloudflare work before making the web privacy URL
-and mobile store foundations reliable.
+The web privacy URL is live. Continue making mobile store foundations reliable
+without waiting for Electron or Cloudflare work.
 
 ## 4. Apple publishing setup from scratch
 
@@ -769,19 +776,22 @@ packaging path exist.
 
 ## 12. GitHub Pages web release
 
+**Live site:** <https://itsryanthedev.github.io/where-ip/>
+**Privacy policy:** <https://itsryanthedev.github.io/where-ip/privacy>
+
 ### 12.1 First release only
 
-- [ ] Add environment-aware Expo configuration so GitHub Pages uses base path
+- [x] Add environment-aware Expo configuration so GitHub Pages uses base path
       `/where-ip`, while local, Electron, and future root-domain builds use `/`.
-- [ ] Add `.github/workflows/pages.yml`.
-- [ ] Separate its unprivileged build job from its deploy job.
-- [ ] Keep top-level permissions at `contents: read`.
-- [ ] Grant `pages: write` and `id-token: write` only to the deploy job.
-- [ ] Use the protected `github-pages` environment.
-- [ ] Pin non-official or third-party actions to reviewed full commit SHAs.
-- [ ] Add `.nojekyll` to the published output.
-- [ ] Enable GitHub Actions as the Pages publishing source.
-- [ ] Confirm the expected URL:
+- [x] Add `.github/workflows/pages.yml`.
+- [x] Separate its unprivileged build job from its deploy job.
+- [x] Keep top-level permissions at `contents: read`.
+- [x] Grant `pages: write` and `id-token: write` only to the deploy job.
+- [x] Use the protected `github-pages` environment.
+- [x] Pin non-official or third-party actions to reviewed full commit SHAs.
+- [x] Add `.nojekyll` to the published output.
+- [x] Enable GitHub Actions as the Pages publishing source.
+- [x] Confirm the expected URL:
       `https://itsryanthedev.github.io/where-ip/`.
 
 ### 12.2 Every candidate
@@ -805,7 +815,8 @@ packaging path exist.
 - [ ] Verify the workflow-reported deployment URL and Git SHA.
 - [ ] Run the route, asset, provider, privacy, accessibility, and responsive
       smoke tests against production.
-- [ ] Confirm the public privacy-policy URL used by stores remains stable.
+- [ ] Confirm the public privacy-policy URL
+      (`https://itsryanthedev.github.io/where-ip/privacy`) remains stable.
 - [ ] Record the deployment URL, workflow run, Git SHA, and artifact digest.
 
 ### 12.4 Monitor and recover

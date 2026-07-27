@@ -146,7 +146,9 @@ perfectly secure, users should review the provider policies before continuing.
 ## Changes
 
 This policy may change when the app's behavior or providers change. Updates
-will be published in this repository and reflected by the "Last updated" date.
+will be published in this repository and on the live web app at
+<https://itsryanthedev.github.io/where-ip/privacy>, and reflected by the
+"Last updated" date.
 
 ## Contact
 
@@ -156,3 +158,4 @@ private or sensitive information in a public issue.
 
 The complete source is available at
 <https://github.com/itsryanthedev/where-ip>.
+The live web app is at <https://itsryanthedev.github.io/where-ip/>.

@@ -183,9 +183,10 @@ ASAR files, updater metadata, or crash reports.
 
 ## Web deployment
 
-The web app is a public static export. GitHub Pages cannot keep runtime secrets,
-and the later Cloudflare Pages deployment must be treated the same way for
-client code.
+The web app is a public static export deployed to GitHub Pages at
+`https://itsryanthedev.github.io/where-ip/`. GitHub Pages cannot keep runtime
+secrets, and the later Cloudflare Pages deployment must be treated the same way
+for client code.
 
 The Cloudflare/domain migration is explicitly deferred in
 `docs/publishing-plan.md`. Do not create Cloudflare resources, add Cloudflare

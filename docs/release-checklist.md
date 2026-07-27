@@ -10,7 +10,9 @@
 - [ ] Resolve the difference between ipwho.is free-endpoint documentation
       ("commercial use allowed") and its personal/internal-use Terms.
 - [ ] Update the policy date if behavior or providers changed.
-- [ ] Confirm the deployed `/privacy` URL is public and stable.
+- [ ] Confirm
+      <https://itsryanthedev.github.io/where-ip/privacy> is public and
+      matches `docs/privacy-policy.md`.
 - [ ] Complete Google Play Data Safety and Apple App Privacy answers from the
       final binary and current provider policies.
 

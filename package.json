@@ -74,7 +74,7 @@
   "bugs": {
     "url": "https://github.com/itsryanthedev/where-ip/issues"
   },
-  "homepage": "https://github.com/itsryanthedev/where-ip#readme",
+  "homepage": "https://itsryanthedev.github.io/where-ip/",
   "jest": {
     "preset": "jest-expo",
     "collectCoverageFrom": [

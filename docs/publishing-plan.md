@@ -1,9 +1,10 @@
 # WhereIP Cross-Platform Publishing Plan
 
-**Status:** Planning only  
-**Last reviewed:** 2026-07-24  
-**Repository:** `itsryanthedev/where-ip`  
+**Status:** In progress — web live; mobile and desktop channels remaining
+**Last reviewed:** 2026-07-26
+**Repository:** `itsryanthedev/where-ip`
 **Initial application version:** `1.0.1`
+**Live web app:** <https://itsryanthedev.github.io/where-ip/>
 
 This document describes how to publish WhereIP through:
 
@@ -16,16 +17,17 @@ This document describes how to publish WhereIP through:
 - GitHub Pages as a static web application.
 
 It also defines how GitHub Actions and Expo Application Services (EAS) should
-share CI/CD responsibilities. This is an implementation plan, not the
-implementation itself. The workflows, Electron shell, credentials, store
-records, and deployment configuration described below are not created yet.
+share CI/CD responsibilities. The GitHub Pages web channel is live. Mobile
+store records, production Electron signing, and several other workflows
+described below are not complete yet.
 
 > **Deferred future direction:** Much later, WhereIP is expected to receive its
 > own domain name and move its web deployment to Cloudflare Pages. This future
 > direction is intentionally out of scope for the current publishing project.
 > It must not affect current architecture, estimates, priorities, URLs, or
 > implementation decisions. Until a separate migration project is approved,
-> GitHub Pages remains the planned web host.
+> GitHub Pages remains the current web host at
+> `https://itsryanthedev.github.io/where-ip/`.
 
 ## 1. Executive decision
 
@@ -67,6 +69,12 @@ The resulting distribution matrix is:
 - Android preview APK configuration.
 - iOS simulator preview configuration.
 - A static web export command: `pnpm run export:web`.
+- Environment-aware Expo `experiments.baseUrl` (`/where-ip` for GitHub Pages).
+- A GitHub Actions Pages workflow (`.github/workflows/pages.yml`) that exports
+  and deploys the static site to GitHub Pages.
+- A live web app and privacy page at
+  `https://itsryanthedev.github.io/where-ip/` and
+  `https://itsryanthedev.github.io/where-ip/privacy`.
 - A GitHub Actions CI workflow that installs dependencies and runs
   `pnpm verify`.
 - App icons, adaptive icons, splash art, web manifest art, store art, a privacy
@@ -80,12 +88,10 @@ The resulting distribution matrix is:
 - EAS Update channels and workflow definitions.
 - Apple Developer, App Store Connect, Google Play, and Partner Center records.
 - Store-specific metadata and final screenshots.
-- A public, stable privacy-policy URL.
 - Electron main/preload code and desktop-specific integration.
 - Desktop application icons and installer art.
 - macOS sandbox entitlements, signing, and notarization configuration.
 - Windows signing and MSIX identity configuration.
-- GitHub Pages base-path handling.
 - Desktop build and release workflows.
 - Store-submission workflows and protected production environments.
 - A unified version and release-tag policy.
@@ -198,7 +204,8 @@ account because Google may change it.
 
 - Keep the repository public if GitHub Pages and public release downloads are
   intended to remain available without a paid GitHub plan.
-- Enable GitHub Pages with GitHub Actions as its publishing source.
+- GitHub Pages is enabled with GitHub Actions as its publishing source. The
+  live site is `https://itsryanthedev.github.io/where-ip/`.
 - Create protected environments:
   - `github-pages`;
   - `desktop-release`;
@@ -369,8 +376,9 @@ release run summary.
 
 Before any store launch:
 
-- Publish the web application first so that `/privacy` is available at a stable
-  HTTPS URL.
+- The web application is published at
+  `https://itsryanthedev.github.io/where-ip/`, with the stable privacy policy
+  at `https://itsryanthedev.github.io/where-ip/privacy`.
 - Ensure the privacy policy names the legal publisher shown by every store.
 - Explain that lookups send the user's public IP and request metadata directly
   to selected and fallback providers.
@@ -397,16 +405,18 @@ The final binary and current provider behavior are the source of truth.
 
 ## 9. Web application → GitHub Pages
 
+**Status:** Live at <https://itsryanthedev.github.io/where-ip/>
+
 ### 9.1 Required configuration
 
-The repository project page will normally be served from:
+The repository project page is served from:
 
 ```text
 https://itsryanthedev.github.io/where-ip/
 ```
 
-Because this is a subpath, configure Expo's web base URL as `/where-ip` for the
-GitHub Pages export. Prefer an environment-aware `app.config.ts` so:
+Because this is a subpath, Expo's web base URL is `/where-ip` for the GitHub
+Pages export. Prefer an environment-aware `app.config.ts` so:
 
 - the GitHub Pages build uses `/where-ip`;
 - desktop bundles and custom/root domains use `/`;
@@ -416,9 +426,9 @@ Verify that router links, icons, Open Graph images, the web manifest, and static
 assets all receive the correct prefix. Do not hardcode a Pages prefix into the
 shared UI.
 
-### 9.2 Proposed workflow
+### 9.2 Workflow
 
-Create `.github/workflows/pages.yml`:
+`.github/workflows/pages.yml` is the production Pages pipeline:
 
 1. trigger on successful pushes to `main` and `workflow_dispatch`;
 2. check out the exact commit;
@@ -433,6 +443,8 @@ Create `.github/workflows/pages.yml`:
 11. expose the deployment URL in the run summary.
 
 ### 9.3 Web acceptance tests
+
+Re-run these against production after every web deployment:
 
 - `/where-ip/` loads without console errors.
 - `/where-ip/about` and `/where-ip/privacy` work through navigation and direct
@@ -1072,14 +1084,16 @@ signature integrity depend on versioned, immutable artifacts.
 
 **Exit condition:** a release SHA can be identified unambiguously across tools.
 
-### Phase 2 — web first
+### Phase 2 — web first ✅
 
 - Add environment-aware web base URL.
 - Implement GitHub Pages workflow.
 - Deploy and validate production web routes.
 - Publish the stable privacy-policy URL.
 
-**Exit condition:** the web app and privacy page are publicly reachable.
+**Exit condition met:** the web app and privacy page are publicly reachable at
+`https://itsryanthedev.github.io/where-ip/` and
+`https://itsryanthedev.github.io/where-ip/privacy`.
 
 ### Phase 3 — mobile stores
 
@@ -1148,7 +1162,8 @@ The publishing project is complete when:
 - Mac users can alternatively install a signed/notarized DMG from GitHub;
 - Windows users can install a signed EXE from GitHub;
 - Windows users can install a Store-managed package from Microsoft Store;
-- web users can use the app from GitHub Pages;
+- web users can use the app from GitHub Pages at
+  `https://itsryanthedev.github.io/where-ip/` (already live);
 - every channel is built from a traceable Git commit and version tag;
 - mobile builds and updates are managed by EAS Workflows;
 - web and desktop builds are managed by GitHub Actions;
