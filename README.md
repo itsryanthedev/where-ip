@@ -6,6 +6,8 @@ WhereIP is a free and open-source app that shows your public IP address and the
 approximate location associated with it. It is built with React Native and
 Expo SDK 57 for iOS, Android, tablets, and the web.
 
+**Live web app:** <https://itsryanthedev.github.io/where-ip/>
+
 No account. No ads. No analytics. No GPS permission. No WhereIP backend.
 
 ## What it shows
@@ -149,7 +151,9 @@ behavior unit-testable.
 
 ## Release material
 
-- [Privacy policy](docs/privacy-policy.md)
+- [Live web app](https://itsryanthedev.github.io/where-ip/)
+- [Published privacy policy](https://itsryanthedev.github.io/where-ip/privacy)
+- [Privacy policy source](docs/privacy-policy.md)
 - [Store listing copy](docs/store-listing.md)
 - [Google Play data safety notes](docs/data-safety.md)
 - [Release checklist](docs/release-checklist.md)
