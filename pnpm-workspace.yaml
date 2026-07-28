@@ -17,3 +17,15 @@ overrides:
   # @electron/rebuild@3.x declares a git URL for @electron/node-gyp; force the
   # published npm package so blockExoticSubdeps can allow Electron Forge.
   '@electron/node-gyp': 10.2.0-electron.2
+  # GHSA-23hp-3jrh-7fpw et al.: Electron Forge still pulls tar@6 via node-gyp.
+  # tar@7.5.21+ clears the current advisory set without changing Forge itself.
+  tar@<7.5.21: 7.5.22
+  # GHSA-mh99-v99m-4gvg: force patched 5.0.8. minimatch@3/5/9 expect a default
+  # function export; patches below unwrap `{ expand }` so tooling keeps working.
+  brace-expansion@<=5.0.7: 5.0.8
+
+patchedDependencies:
+  # Compatibility shims for brace-expansion@5 named export (see override above).
+  minimatch@3.1.5: patches/minimatch@3.1.5.patch
+  minimatch@5.1.9: patches/minimatch@5.1.9.patch
+  minimatch@9.0.9: patches/minimatch@9.0.9.patch

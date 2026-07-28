@@ -96,5 +96,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       reactCompiler: true,
       ...(webBaseUrl ? { baseUrl: webBaseUrl } : {}),
     },
+    extra: {
+      eas: {
+        projectId: 'a80c043f-748e-4ced-a8b5-261692967932',
+      },
+    },
   };
 };

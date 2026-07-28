@@ -1,0 +1,17 @@
+diff --git a/minimatch.js b/minimatch.js
+index 2e4a058a130dceebf83a7bd435f5d22b765ac836..432b57c8f130f0c2d966bfe02006c9b5613a34db 100644
+--- a/minimatch.js
++++ b/minimatch.js
+@@ -7,7 +7,12 @@ var path = (function () { try { return require('path') } catch (e) {}}()) || {
+ minimatch.sep = path.sep
+ 
+ var GLOBSTAR = minimatch.GLOBSTAR = Minimatch.GLOBSTAR = {}
++// brace-expansion@5 exports `{ expand }` instead of a default function.
++// Keep both shapes working so security overrides stay compatible.
+ var expand = require('brace-expansion')
++if (typeof expand !== 'function') {
++  expand = expand && expand.expand
++}
+ 
+ var plTypes = {
+   '!': { open: '(?:(?!(?:', close: '))[^/]*?)'},

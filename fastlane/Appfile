@@ -1,0 +1,8 @@
+# Google Play package name (safe to commit).
+package_name("com.elmowjastudio.whereip")
+
+# Service-account JSON lives outside the repo. Prefer env override:
+#   export SUPPLY_JSON_KEY="$HOME/Secrets/playstore-cli-access.json"
+json_key_file(ENV.fetch("SUPPLY_JSON_KEY") {
+  File.expand_path("~/Secrets/playstore-cli-access.json")
+})

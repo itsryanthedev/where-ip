@@ -76,3 +76,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Fastlane local run output
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
