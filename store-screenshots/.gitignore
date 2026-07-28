@@ -9,3 +9,6 @@ next-env.d.ts
 bun.lock
 yarn.lock
 package-lock.json
+
+# Local upload mirror (duplicate of Secrets store-listing assets)
+store-listing-upload/
