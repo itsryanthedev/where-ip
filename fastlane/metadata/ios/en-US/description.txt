@@ -1,0 +1,15 @@
+WhereIP is a small, free, and open-source network utility.
+
+Open the app to see your public IPv4 or IPv6 address, country, approximate city and region, network organization, ASN, timezone, and the provider that returned the result. Available fields depend on the selected provider.
+
+Privacy is part of the interface:
+
+- no WhereIP account or backend;
+- no ads or analytics;
+- no GPS permission;
+- a clear disclosure before the first request;
+- direct links to every provider's privacy policy and terms;
+- local caching and a refresh cooldown to avoid unnecessary requests; and
+- complete source code available on GitHub.
+
+IP location is approximate and can represent a VPN, carrier gateway, business network, or nearby city. WhereIP never presents it as the device's precise physical location.

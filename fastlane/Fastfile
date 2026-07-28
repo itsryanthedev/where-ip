@@ -1,0 +1,51 @@
+# frozen_string_literal: true
+
+default_platform(:android)
+
+platform :android do
+  desc "Validate Play API access + metadata (no uploads)"
+  lane :play_validate do
+    supply(
+      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      validate_only: true,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "Upload Play Store listing metadata (text only; no binary/images)
+  Note: classic `supply` needs an existing track release (AAB). Before the first
+  binary, use the Play Developer API listing edit (or Console) for text/icon."
+  lane :play_metadata do
+    supply(
+      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      track: "internal",
+      release_status: "draft",
+      changes_not_sent_for_review: true,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      metadata_path: "fastlane/metadata/android"
+    )
+  end
+
+  desc "Upload Play Store listing metadata + graphics (icon, feature graphic, screenshots)"
+  lane :play_listing do
+    supply(
+      package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
+      json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_changelogs: true,
+      metadata_path: "fastlane/metadata/android"
+    )
+  end
+end

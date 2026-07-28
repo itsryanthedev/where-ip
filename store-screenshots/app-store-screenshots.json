@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 2,
+  "appName": "WhereIP",
+  "themeId": "dark-bold",
+  "connectedCanvas": true,
+  "locales": ["en"],
+  "locale": "en",
+  "device": "android",
+  "orientation": "portrait",
+  "appIcon": "/app-icon.png",
+  "slidesByDevice": {
+    "iphone": [
+      {
+        "id": "ios-01-result",
+        "layout": "device-bottom",
+        "label": { "en": "PUBLIC IP" },
+        "headline": { "en": "See what the\ninternet sees." },
+        "screenshot": "/screenshots/apple/iphone/en/01.png"
+      },
+      {
+        "id": "ios-02-disclosure",
+        "layout": "device-bottom",
+        "label": { "en": "PRIVACY FIRST" },
+        "headline": { "en": "No account.\nNo GPS.\nNo ads." },
+        "screenshot": "/screenshots/apple/iphone/en/02.png"
+      },
+      {
+        "id": "ios-03-providers",
+        "layout": "device-bottom",
+        "label": { "en": "PROVIDERS" },
+        "headline": { "en": "Pick your\nlookup source." },
+        "screenshot": "/screenshots/apple/iphone/en/03.png"
+      },
+      {
+        "id": "ios-04-about",
+        "layout": "device-bottom",
+        "label": { "en": "OPEN SOURCE" },
+        "headline": { "en": "Transparent\nby design." },
+        "screenshot": "/screenshots/apple/iphone/en/04.png"
+      }
+    ],
+    "android": [
+      {
+        "id": "and-01-result",
+        "layout": "hero",
+        "label": { "en": "PUBLIC IP" },
+        "headline": { "en": "See what the\ninternet sees." },
+        "screenshot": "/screenshots/android/phone/en/01.png"
+      },
+      {
+        "id": "and-02-disclosure",
+        "layout": "device-bottom",
+        "label": { "en": "PRIVACY FIRST" },
+        "headline": { "en": "No account.\nNo GPS.\nNo ads." },
+        "screenshot": "/screenshots/android/phone/en/02.png"
+      },
+      {
+        "id": "and-03-providers",
+        "layout": "device-bottom",
+        "label": { "en": "PROVIDERS" },
+        "headline": { "en": "Pick your\nlookup source." },
+        "screenshot": "/screenshots/android/phone/en/03.png"
+      },
+      {
+        "id": "and-04-about",
+        "layout": "device-bottom",
+        "label": { "en": "OPEN SOURCE" },
+        "headline": { "en": "Transparent\nby design." },
+        "screenshot": "/screenshots/android/phone/en/04.png"
+      }
+    ],
+    "ipad": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": [
+      {
+        "id": "fg-01",
+        "layout": "feature-graphic",
+        "label": {},
+        "headline": { "en": "Know what the internet sees." },
+        "screenshot": ""
+      }
+    ]
+  },
+  "crossScreenMockupsByDevice": {
+    "iphone": [],
+    "ipad": [],
+    "android": [],
+    "android-7": [],
+    "android-10": [],
+    "feature-graphic": []
+  }
+}

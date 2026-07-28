@@ -1,0 +1,18 @@
+# Release and credential-handling surfaces require maintainer review.
+/.github/ @itsryanthedev
+/.githooks/ @itsryanthedev
+/.eas/ @itsryanthedev
+/electron/ @itsryanthedev
+/.gitignore @itsryanthedev
+/app.config.ts @itsryanthedev
+/eas.json @itsryanthedev
+/electron-forge.config.cjs @itsryanthedev
+/package.json @itsryanthedev
+/pnpm-lock.yaml @itsryanthedev
+/pnpm-workspace.yaml @itsryanthedev
+/socket.yml @itsryanthedev
+/SOCKET.md @itsryanthedev
+/.coderabbit.yaml @itsryanthedev
+/SECURITY.md @itsryanthedev
+/scripts/check-secrets.mjs @itsryanthedev
+/scripts/package-desktop.mjs @itsryanthedev

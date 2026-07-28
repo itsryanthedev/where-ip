@@ -1,0 +1,31 @@
+minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+trustLockfile: false
+blockExoticSubdeps: true
+
+allowBuilds:
+  electron: true
+  unrs-resolver: true
+
+# GHSA-w5hq-g745-h8pq: Expo config-plugins → xcode@3.0.1 pins uuid@^7.
+# xcode only calls uuid.v4() (unaffected API); override clears the advisory.
+overrides:
+  uuid@<11.1.1: 11.1.1
+  # Keep browserslist's electron-to-chromium outside the 24h minimumReleaseAge window.
+  electron-to-chromium: 1.5.394
+  # @electron/rebuild@3.x declares a git URL for @electron/node-gyp; force the
+  # published npm package so blockExoticSubdeps can allow Electron Forge.
+  '@electron/node-gyp': 10.2.0-electron.2
+  # GHSA-23hp-3jrh-7fpw et al.: Electron Forge still pulls tar@6 via node-gyp.
+  # tar@7.5.21+ clears the current advisory set without changing Forge itself.
+  tar@<7.5.21: 7.5.22
+  # GHSA-mh99-v99m-4gvg: force patched 5.0.8. minimatch@3/5/9 expect a default
+  # function export; patches below unwrap `{ expand }` so tooling keeps working.
+  brace-expansion@<=5.0.7: 5.0.8
+
+patchedDependencies:
+  # Compatibility shims for brace-expansion@5 named export (see override above).
+  minimatch@3.1.5: patches/minimatch@3.1.5.patch
+  minimatch@5.1.9: patches/minimatch@5.1.9.patch
+  minimatch@9.0.9: patches/minimatch@9.0.9.patch

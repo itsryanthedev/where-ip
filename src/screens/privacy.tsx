@@ -1,0 +1,340 @@
+import { Stack } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { ExternalLink } from '@/components/external-link';
+import { APP_LINK_IDS, APP_LINKS, providerLinkId } from '@/constants/links';
+import { PROVIDERS } from '@/constants/providers';
+import { radii, shadows, spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+
+export function Privacy() {
+  const colors = useAppColors();
+
+  return (
+    <>
+      <Stack.Screen options={{ title: 'Privacy Policy' }} />
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={styles.scrollContent}
+        style={{ backgroundColor: colors.background }}
+      >
+        <View style={styles.content}>
+          <Text
+            accessibilityRole="header"
+            style={[styles.title, { color: colors.text }]}
+          >
+            WhereIP Privacy Policy
+          </Text>
+          <Text style={[styles.effectiveDate, { color: colors.textMuted }]}>
+            Effective July 26, 2026
+          </Text>
+
+          <PolicySection featured title="The short version">
+            WhereIP does not operate a backend, create accounts, show ads, run
+            analytics, track you, or request GPS access. The app asks a
+            third-party IP information provider for your public network
+            information and displays the response on your device. That provider
+            necessarily receives your public IP, which European privacy law
+            generally treats as personal data.
+          </PolicySection>
+
+          <PolicySection title="Information processed">
+            To answer a lookup, the selected provider receives the public IP
+            address from which your request originates. Its response may include
+            that IP, approximate city or region, country, timezone, and network
+            organization. IP-based location is approximate and is not GPS
+            location.
+          </PolicySection>
+
+          <PolicySection title="Third-party providers">
+            ipwho.is is the default. If it cannot return a usable result,
+            WhereIP may contact FreeIPAPI and then IPinfo. You may select
+            another preferred provider. Each service operates independently and
+            applies its own privacy policy and terms.
+          </PolicySection>
+
+          <View style={styles.providerPolicies}>
+            {PROVIDERS.map((provider) => (
+              <View
+                key={provider.id}
+                style={[
+                  styles.providerPolicy,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    boxShadow: `${shadows.control} ${colors.shadow}`,
+                  },
+                ]}
+              >
+                <Text style={[styles.providerName, { color: colors.text }]}>
+                  {provider.name}
+                </Text>
+                <View style={styles.providerLinks}>
+                  <ExternalLink
+                    compact
+                    href={provider.privacyUrl}
+                    linkId={providerLinkId(provider.id, 'privacy')}
+                    label={`${provider.name} Privacy Policy`}
+                  />
+                  <ExternalLink
+                    compact
+                    href={provider.termsUrl}
+                    linkId={providerLinkId(provider.id, 'terms')}
+                    label={`${provider.name} Terms of Use`}
+                  />
+                </View>
+              </View>
+            ))}
+          </View>
+
+          <PolicySection title="Data stored on your device">
+            WhereIP stores your acknowledgement of the first-run disclosure,
+            preferred provider, temporary provider cool-off times, and the most
+            recent successful result. This local cache prevents unnecessary
+            requests and supports a useful offline state. WhereIP does not sync
+            this data to a developer-controlled service.
+          </PolicySection>
+
+          <PolicySection title="Permissions and diagnostics">
+            The app requests no location, contacts, camera, microphone, tracking,
+            or advertising permission. Production builds contain no analytics or
+            advertising SDK. If you report a problem, you decide what information
+            to include in the public GitHub issue.
+          </PolicySection>
+
+          <GdprSection />
+
+          <PolicySection title="Changes">
+            Material changes to this policy will be published with the source
+            code and reflected in a new effective date. Provider policies can
+            change independently; their official links above are authoritative.
+          </PolicySection>
+
+          <PolicySection title="Contact">
+            Questions, corrections, and security reports can be submitted through
+            the project’s public issue tracker. Do not include private network
+            details in a public report.
+          </PolicySection>
+
+          <ExternalLink
+            href={APP_LINKS.issues}
+            linkId={APP_LINK_IDS.issues}
+            label="Open the issue tracker"
+          />
+          <ExternalLink
+            href={APP_LINKS.repository}
+            linkId={APP_LINK_IDS.repository}
+            label="Inspect the source code"
+          />
+        </View>
+      </ScrollView>
+    </>
+  );
+}
+
+function GdprSection() {
+  const colors = useAppColors();
+
+  return (
+    <View
+      style={[
+        styles.gdprSection,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
+        },
+      ]}
+    >
+      <Text accessibilityRole="header" style={[styles.heading, { color: colors.text }]}>
+        GDPR
+      </Text>
+      <Text selectable style={[styles.body, { color: colors.textMuted }]}>
+        This section explains how WhereIP relates to the EU General Data
+        Protection Regulation (GDPR) and comparable UK privacy rules. It
+        describes the app’s design in plain language and is not legal advice.
+      </Text>
+
+      <GdprTopic title="Personal data involved">
+        When you run a lookup, the contacted provider receives the public IP
+        address used for that HTTPS request and may observe ordinary request
+        metadata. The response may include approximate location and network
+        identifiers derived from that IP. WhereIP does not collect names, email
+        addresses, accounts, advertising identifiers, or GPS location.
+      </GdprTopic>
+
+      <GdprTopic title="Who processes what">
+        WhereIP has no developer-operated backend and does not receive lookup
+        traffic on a WhereIP server. Acknowledgement, preference, cool-off, and
+        cache values stay on this device. Each provider processes the request
+        under its own privacy policy; WhereIP does not control their retention
+        or secondary uses.
+      </GdprTopic>
+
+      <GdprTopic title="Why the lookup happens">
+        Your public IP is disclosed to a provider only so WhereIP can show the
+        public network information you asked for, after you acknowledge the
+        first-run disclosure and continue. WhereIP does not use lookups for
+        advertising, profiling, analytics products, or selling data.
+      </GdprTopic>
+
+      <GdprTopic title="Cookies, analytics, and consent banners">
+        WhereIP embeds no advertising, analytics, or tracking SDKs. The first-run
+        dialog explains the provider request before the first lookup; it is not
+        a cookie or marketing-consent banner. Local storage exists to remember
+        your acknowledgement, preference, cool-offs, and a short-lived result.
+      </GdprTopic>
+
+      <GdprTopic title="Your choices and rights">
+        You can decline to continue past the first-run disclosure, choose a
+        preferred provider, or clear app data or uninstall to remove on-device
+        cache and settings. Because WhereIP keeps no server copy of lookups,
+        there is no WhereIP account profile to export or delete. For data a
+        provider may hold, use that provider’s official privacy contact. European
+        privacy law may also give you rights such as access, erasure, or
+        complaint to a supervisory authority, depending on your situation and on
+        who holds the relevant data.
+      </GdprTopic>
+
+      <GdprTopic title="International providers">
+        Providers may process requests outside your country, including outside
+        the European Economic Area. Their linked policies describe those
+        arrangements. WhereIP cannot change them from the client app.
+      </GdprTopic>
+    </View>
+  );
+}
+
+function GdprTopic({
+  title,
+  children,
+}: {
+  title: string;
+  children: string;
+}) {
+  const colors = useAppColors();
+
+  return (
+    <View style={styles.gdprTopic}>
+      <Text accessibilityRole="header" style={[styles.gdprTopicTitle, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text selectable style={[styles.body, { color: colors.textMuted }]}>
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+function PolicySection({
+  title,
+  children,
+  featured = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  featured?: boolean;
+}) {
+  const colors = useAppColors();
+  return (
+    <View
+      style={[
+        styles.section,
+        featured && styles.featuredSection,
+        featured && {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          boxShadow: `${shadows.card} ${colors.shadow}`,
+        },
+      ]}
+    >
+      <Text accessibilityRole="header" style={[styles.heading, { color: colors.text }]}>
+        {title}
+      </Text>
+      <Text selectable style={[styles.body, { color: colors.textMuted }]}>
+        {children}
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrollContent: {
+    minHeight: '100%',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+  },
+  content: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
+    gap: spacing.lg,
+  },
+  title: {
+    fontSize: 32,
+    lineHeight: 38,
+    fontWeight: '800',
+    letterSpacing: -0.7,
+  },
+  effectiveDate: {
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: -spacing.md,
+  },
+  section: {
+    gap: spacing.sm,
+  },
+  featuredSection: {
+    borderWidth: 1,
+    borderRadius: radii.section,
+    borderCurve: 'continuous',
+    padding: spacing.xl,
+  },
+  gdprSection: {
+    borderWidth: 1,
+    borderRadius: radii.section,
+    borderCurve: 'continuous',
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  gdprTopic: {
+    gap: spacing.xs,
+  },
+  gdprTopicTitle: {
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  heading: {
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+  },
+  body: {
+    fontSize: 15,
+    lineHeight: 24,
+  },
+  providerPolicies: {
+    gap: spacing.md,
+  },
+  providerPolicy: {
+    borderWidth: 1,
+    borderRadius: radii.control,
+    borderCurve: 'continuous',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.xs,
+  },
+  providerName: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '700',
+  },
+  providerLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.xl,
+  },
+});

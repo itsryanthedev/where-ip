@@ -1,0 +1,418 @@
+import { useState } from 'react';
+import {
+  Animated,
+  Easing,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+
+import { ExternalLink } from '@/components/external-link';
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  InfoIcon,
+} from '@/components/icons';
+import { RevealView } from '@/components/reveal-view';
+import { TactilePressable } from '@/components/tactile-pressable';
+import { providerLinkId } from '@/constants/links';
+import { PROVIDERS } from '@/constants/providers';
+import { motion, radii, shadows, spacing } from '@/constants/theme';
+import { useAppColors } from '@/hooks/use-app-colors';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
+import type { ProviderId } from '@/types/ip';
+
+type ProviderSelectorProps = {
+  selectedProvider: ProviderId;
+  onSelect: (providerId: ProviderId) => void;
+  providerSwitchTarget?: ProviderId | null;
+  providerSwitchRefreshing?: boolean;
+  providerSwitchRemainingMs?: number;
+};
+
+export function ProviderSelector({
+  selectedProvider,
+  onSelect,
+  providerSwitchTarget = null,
+  providerSwitchRefreshing = false,
+  providerSwitchRemainingMs = 0,
+}: ProviderSelectorProps) {
+  const colors = useAppColors();
+  const reduceMotion = useReducedMotion();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [policiesOpen, setPoliciesOpen] = useState(false);
+  const [chevronProgress] = useState(() => new Animated.Value(0));
+  const selected = PROVIDERS.find(
+    (provider) => provider.id === selectedProvider,
+  );
+  const switchTarget = PROVIDERS.find(
+    (provider) => provider.id === providerSwitchTarget,
+  );
+  const popoverOpen = menuOpen || policiesOpen;
+  const popoverTop = switchTarget ? 69 : 50;
+  const chevronRotation = chevronProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  const animateChevron = (open: boolean) => {
+    const toValue = open ? 1 : 0;
+    chevronProgress.stopAnimation();
+
+    if (reduceMotion) {
+      chevronProgress.setValue(toValue);
+      return;
+    }
+
+    Animated.timing(chevronProgress, {
+      toValue,
+      duration: motion.duration.toggle,
+      easing: Easing.bezier(...motion.easing.inOut),
+      useNativeDriver: Platform.OS !== 'web',
+    }).start();
+  };
+
+  const setMenuVisible = (open: boolean) => {
+    setMenuOpen(open);
+    animateChevron(open);
+  };
+
+  const dismissPopovers = () => {
+    setMenuVisible(false);
+    setPoliciesOpen(false);
+  };
+
+  const selectProvider = (providerId: ProviderId) => {
+    onSelect(providerId);
+    setMenuVisible(false);
+  };
+
+  return (
+    <View style={[styles.container, { zIndex: popoverOpen ? 20 : 0 }]}>
+      {popoverOpen ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss provider menu"
+          onPress={dismissPopovers}
+          style={styles.dismissLayer}
+        />
+      ) : null}
+
+      <View style={styles.controls}>
+        <TactilePressable
+          accessibilityRole="button"
+          accessibilityLabel={`Provider, ${selected?.name}`}
+          accessibilityHint="Opens the provider selector"
+          accessibilityState={{ expanded: menuOpen }}
+          aria-expanded={menuOpen}
+          onPress={() => {
+            setPoliciesOpen(false);
+            setMenuVisible(!menuOpen);
+          }}
+          style={({ pressed }) => [
+            styles.trigger,
+            {
+              backgroundColor:
+                menuOpen || pressed
+                  ? colors.accentSoft
+                  : colors.surfaceRaised,
+              borderColor: menuOpen ? colors.accent : colors.border,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <Text style={[styles.triggerLabel, { color: colors.textMuted }]}>
+            Provider
+          </Text>
+          <Text
+            numberOfLines={1}
+            style={[styles.selectedName, { color: colors.text }]}
+          >
+            {selected?.name}
+          </Text>
+          <Animated.View style={{ transform: [{ rotate: chevronRotation }] }}>
+            <ChevronDownIcon color={colors.accent} />
+          </Animated.View>
+        </TactilePressable>
+
+        <TactilePressable
+          accessibilityRole="button"
+          accessibilityLabel={`Privacy and terms for ${selected?.name}`}
+          accessibilityHint="Shows official third-party policy links"
+          accessibilityState={{ expanded: policiesOpen }}
+          aria-expanded={policiesOpen}
+          onPress={() => {
+            setMenuVisible(false);
+            setPoliciesOpen((visible) => !visible);
+          }}
+          hitSlop={4}
+          style={({ pressed }) => [
+            styles.infoButton,
+            {
+              backgroundColor: policiesOpen
+                ? colors.accentSoft
+                : pressed
+                  ? colors.backgroundAccent
+                  : colors.surfaceRaised,
+              borderColor: policiesOpen ? colors.accent : colors.border,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <InfoIcon color={colors.accent} size={19} />
+        </TactilePressable>
+      </View>
+
+      {switchTarget ? (
+        <Text
+          accessibilityLiveRegion="polite"
+          style={[
+            styles.switchStatus,
+            {
+              color:
+                providerSwitchRefreshing || providerSwitchRemainingMs <= 0
+                  ? colors.accentText
+                  : colors.textMuted,
+            },
+          ]}
+        >
+          {providerSwitchRefreshing || providerSwitchRemainingMs <= 0
+            ? `Updating with ${switchTarget.name}…`
+            : `Updating with ${switchTarget.name} in ${Math.ceil(
+                providerSwitchRemainingMs / 1000,
+              )}s`}
+        </Text>
+      ) : null}
+
+      {menuOpen ? (
+        <RevealView
+          accessibilityRole="radiogroup"
+          accessibilityLabel="Preferred IP information provider"
+          duration={motion.duration.popover}
+          fromScale={motion.scale.surfaceEnter}
+          fromTranslateY={motion.offset.popover}
+          onAccessibilityEscape={dismissPopovers}
+          style={[
+            styles.menu,
+            {
+              top: popoverTop,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              boxShadow: `${shadows.popover} ${colors.shadow}`,
+            },
+          ]}
+        >
+          {PROVIDERS.map((provider) => {
+            const isSelected = provider.id === selectedProvider;
+
+            return (
+              <Pressable
+                key={provider.id}
+                accessibilityRole="radio"
+                accessibilityLabel={`Use ${provider.name}`}
+                accessibilityHint="Uses this provider for the next lookup"
+                accessibilityState={{ checked: isSelected }}
+                aria-checked={isSelected}
+                onPress={() => selectProvider(provider.id)}
+                style={({ pressed }) => [
+                  styles.option,
+                  {
+                    backgroundColor:
+                      isSelected || pressed
+                        ? colors.accentSoft
+                        : colors.surface,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.optionLabel,
+                    { color: isSelected ? colors.accentText : colors.text },
+                  ]}
+                >
+                  {provider.name}
+                </Text>
+                <View style={styles.check}>
+                  {isSelected ? <CheckIcon color={colors.accentText} /> : null}
+                </View>
+              </Pressable>
+            );
+          })}
+        </RevealView>
+      ) : null}
+
+      {policiesOpen && selected ? (
+        <RevealView
+          accessibilityLiveRegion="polite"
+          duration={motion.duration.popover}
+          fromScale={motion.scale.surfaceEnter}
+          fromTranslateY={motion.offset.popover}
+          onAccessibilityEscape={dismissPopovers}
+          style={[
+            styles.policyPopover,
+            {
+              top: popoverTop,
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              boxShadow: `${shadows.popover} ${colors.shadow}`,
+            },
+          ]}
+        >
+          <Text style={[styles.policyTitle, { color: colors.text }]}>
+            {selected.name} privacy
+          </Text>
+          <Text
+            selectable
+            style={[styles.policyCopy, { color: colors.textMuted }]}
+          >
+            For privacy details about this third-party provider, review its
+            official Privacy Policy and Terms of Use.
+          </Text>
+          <View style={styles.policyLinks}>
+            <ExternalLink
+              compact
+              href={selected.privacyUrl}
+              linkId={providerLinkId(selected.id, 'privacy')}
+              label={`${selected.name} Privacy Policy`}
+            />
+            <ExternalLink
+              compact
+              href={selected.termsUrl}
+              linkId={providerLinkId(selected.id, 'terms')}
+              label={`${selected.name} Terms of Use`}
+            />
+            <ExternalLink
+              compact
+              href={selected.documentationUrl}
+              linkId={providerLinkId(selected.id, 'documentation')}
+              label={`${selected.name} API documentation`}
+            />
+          </View>
+        </RevealView>
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    position: 'relative',
+    minWidth: 240,
+    marginStart: 'auto',
+  },
+  dismissLayer: {
+    position: 'absolute',
+    top: -2000,
+    bottom: -2000,
+    start: -2000,
+    end: -2000,
+    zIndex: 1,
+  },
+  controls: {
+    zIndex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  trigger: {
+    flex: 1,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderRadius: radii.control,
+    borderCurve: 'continuous',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  infoButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: radii.control,
+    borderCurve: 'continuous',
+  },
+  triggerLabel: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  selectedName: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  menu: {
+    position: 'absolute',
+    top: 50,
+    end: 52,
+    zIndex: 3,
+    width: 188,
+    borderWidth: 1,
+    borderRadius: radii.control,
+    borderCurve: 'continuous',
+    overflow: 'hidden',
+    transformOrigin: 'top right',
+  },
+  option: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  optionLabel: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  check: {
+    width: 18,
+    height: 18,
+  },
+  switchStatus: {
+    zIndex: 2,
+    paddingTop: spacing.xs,
+    paddingEnd: 52,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+    textAlign: 'right',
+  },
+  policyPopover: {
+    position: 'absolute',
+    top: 50,
+    end: 0,
+    zIndex: 3,
+    width: 310,
+    borderWidth: 1,
+    borderRadius: radii.card,
+    borderCurve: 'continuous',
+    padding: spacing.lg,
+    gap: spacing.sm,
+    transformOrigin: 'top right',
+  },
+  policyTitle: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: '800',
+  },
+  policyCopy: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  policyLinks: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: spacing.lg,
+    rowGap: spacing.xs,
+  },
+});

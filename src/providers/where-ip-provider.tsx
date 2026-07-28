@@ -1,0 +1,333 @@
+import NetInfo from '@react-native-community/netinfo';
+import {
+  createContext,
+  type PropsWithChildren,
+  use,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import {
+  CACHE_FRESHNESS_MS,
+  DEFAULT_PROVIDER_ID,
+  REFRESH_COOLDOWN_MS,
+} from '@/constants/providers';
+import { getCooldownRemainingMs } from '@/hooks/use-cooldown-remaining-ms';
+import {
+  lookupPublicIp,
+  LookupChainError,
+} from '@/services/ip-lookup';
+import { getDesktopBridge } from '@/services/desktop-bridge';
+import {
+  loadPersistedState,
+  saveCache,
+  saveProviderCooldowns,
+  saveSettings,
+} from '@/services/storage';
+import type {
+  IpResult,
+  ProviderCooldowns,
+  ProviderId,
+} from '@/types/ip';
+
+export type LookupStatus =
+  | 'idle'
+  | 'loading'
+  | 'refreshing'
+  | 'success'
+  | 'stale'
+  | 'error';
+
+type WhereIpContextValue = {
+  isReady: boolean;
+  acknowledgementRequired: boolean;
+  acceptDisclosure: () => Promise<void>;
+  result: IpResult | null;
+  status: LookupStatus;
+  errorMessage: string | null;
+  fallbackFrom: ProviderId | null;
+  preferredProvider: ProviderId;
+  setPreferredProvider: (providerId: ProviderId) => Promise<void>;
+  providerSwitchTarget: ProviderId | null;
+  providerSwitchRefreshing: boolean;
+  refresh: () => Promise<void>;
+};
+
+const WhereIpContext = createContext<WhereIpContextValue | null>(null);
+
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+export function WhereIpProvider({ children }: PropsWithChildren) {
+  const [isReady, setIsReady] = useState(false);
+  const [acknowledgedAt, setAcknowledgedAt] = useState<string | null>(null);
+  const [preferredProvider, setPreferredProviderState] =
+    useState<ProviderId>(DEFAULT_PROVIDER_ID);
+  const [result, setResult] = useState<IpResult | null>(null);
+  const [status, setStatus] = useState<LookupStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [fallbackFrom, setFallbackFrom] = useState<ProviderId | null>(null);
+  const [pendingProviderRefresh, setPendingProviderRefresh] =
+    useState<ProviderId | null>(null);
+  const [refreshingProvider, setRefreshingProvider] =
+    useState<ProviderId | null>(null);
+
+  const requestInFlight = useRef(false);
+  const mountedRef = useRef(true);
+  const providerSwitchTokenRef = useRef(0);
+  const resultRef = useRef<IpResult | null>(null);
+  const providerCooldownsRef = useRef<ProviderCooldowns>({});
+  const preferredProviderRef = useRef<ProviderId>(DEFAULT_PROVIDER_ID);
+  const acknowledgedAtRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      providerSwitchTokenRef.current += 1;
+    };
+  }, []);
+
+  const performLookup = useCallback(async (
+    manualRefresh = false,
+    providerOverride?: ProviderId,
+    options?: { skipAgeCheck?: boolean },
+  ): Promise<boolean> => {
+    if (requestInFlight.current) {
+      return false;
+    }
+
+    const currentResult = resultRef.current;
+    const currentCooldowns = providerCooldownsRef.current;
+    if (!options?.skipAgeCheck) {
+      const resultAge = currentResult
+        ? Date.now() - Date.parse(currentResult.fetchedAt)
+        : Infinity;
+      const minimumAge = manualRefresh
+        ? REFRESH_COOLDOWN_MS
+        : CACHE_FRESHNESS_MS;
+      if (resultAge < minimumAge) {
+        return false;
+      }
+    }
+
+    requestInFlight.current = true;
+    if (mountedRef.current) {
+      setStatus(currentResult ? 'refreshing' : 'loading');
+      setErrorMessage(null);
+    }
+
+    try {
+      const requestedProvider = providerOverride ?? preferredProviderRef.current;
+      const networkState = await NetInfo.fetch();
+      if (!mountedRef.current) {
+        return false;
+      }
+      if (networkState.isConnected === false) {
+        throw new Error('You appear to be offline. Your last result is still available.');
+      }
+
+      const desktopBridge = getDesktopBridge();
+      const outcome = await lookupPublicIp({
+        preferredProvider: requestedProvider,
+        providerCooldowns: currentCooldowns,
+        providerLookup: desktopBridge
+          ? (providerId) => desktopBridge.lookupPublicIp(providerId)
+          : undefined,
+      });
+
+      resultRef.current = outcome.result;
+      providerCooldownsRef.current = outcome.providerCooldowns;
+
+      if (mountedRef.current) {
+        setResult(outcome.result);
+        setFallbackFrom(
+          outcome.result.providerId === requestedProvider
+            ? null
+            : requestedProvider,
+        );
+        setStatus('success');
+      }
+
+      await Promise.all([
+        saveCache(outcome.result),
+        saveProviderCooldowns(outcome.providerCooldowns),
+      ]);
+      return true;
+    } catch (error) {
+      const nextCooldowns =
+        error instanceof LookupChainError
+          ? error.providerCooldowns
+          : providerCooldownsRef.current;
+      providerCooldownsRef.current = nextCooldowns;
+
+      if (mountedRef.current) {
+        setStatus(resultRef.current ? 'stale' : 'error');
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : 'Your network information could not be loaded.',
+        );
+      }
+
+      await saveProviderCooldowns(nextCooldowns).catch(() => undefined);
+      return true;
+    } finally {
+      requestInFlight.current = false;
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    void loadPersistedState().then((persisted) => {
+      if (!active || !mountedRef.current) {
+        return;
+      }
+
+      preferredProviderRef.current = persisted.settings.preferredProvider;
+      acknowledgedAtRef.current = persisted.settings.acknowledgedAt;
+      providerCooldownsRef.current = persisted.providerCooldowns;
+      resultRef.current = persisted.cache;
+
+      setPreferredProviderState(persisted.settings.preferredProvider);
+      setAcknowledgedAt(persisted.settings.acknowledgedAt);
+      setResult(persisted.cache);
+
+      if (persisted.cache) {
+        const age = Date.now() - Date.parse(persisted.cache.fetchedAt);
+        setStatus(age <= CACHE_FRESHNESS_MS ? 'success' : 'stale');
+      }
+
+      setIsReady(true);
+
+      if (persisted.settings.acknowledgedAt) {
+        void performLookup(false);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [performLookup]);
+
+  const acceptDisclosure = useCallback(async () => {
+    const acceptedAt = new Date().toISOString();
+    setAcknowledgedAt(acceptedAt);
+    acknowledgedAtRef.current = acceptedAt;
+    await saveSettings({
+      acknowledgedAt: acceptedAt,
+      preferredProvider: preferredProviderRef.current,
+    }).catch(() => undefined);
+    await performLookup(false);
+  }, [performLookup]);
+
+  const setPreferredProvider = useCallback(
+    async (providerId: ProviderId) => {
+      if (providerId === preferredProviderRef.current) {
+        return;
+      }
+
+      const token = ++providerSwitchTokenRef.current;
+
+      setPreferredProviderState(providerId);
+      preferredProviderRef.current = providerId;
+      setFallbackFrom(null);
+      setPendingProviderRefresh(providerId);
+      setRefreshingProvider(null);
+
+      await saveSettings({
+        acknowledgedAt: acknowledgedAtRef.current,
+        preferredProvider: providerId,
+      }).catch(() => undefined);
+
+      let waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
+      while (waitMs > 0) {
+        await delay(waitMs);
+        if (
+          providerSwitchTokenRef.current !== token ||
+          !mountedRef.current
+        ) {
+          return;
+        }
+        waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
+      }
+
+      if (
+        providerSwitchTokenRef.current !== token ||
+        !mountedRef.current
+      ) {
+        return;
+      }
+
+      setRefreshingProvider(providerId);
+
+      try {
+        await performLookup(true, providerId, { skipAgeCheck: true });
+      } finally {
+        if (providerSwitchTokenRef.current === token && mountedRef.current) {
+          setPendingProviderRefresh((current) =>
+            current === providerId ? null : current,
+          );
+          setRefreshingProvider((current) =>
+            current === providerId ? null : current,
+          );
+        }
+      }
+    },
+    [performLookup],
+  );
+
+  const refresh = useCallback(async () => {
+    await performLookup(true);
+  }, [performLookup]);
+
+  const value = useMemo<WhereIpContextValue>(
+    () => ({
+      isReady,
+      acknowledgementRequired: isReady && !acknowledgedAt,
+      acceptDisclosure,
+      result,
+      status,
+      errorMessage,
+      fallbackFrom,
+      preferredProvider,
+      setPreferredProvider,
+      providerSwitchTarget: pendingProviderRefresh,
+      providerSwitchRefreshing:
+        refreshingProvider !== null &&
+        refreshingProvider === pendingProviderRefresh,
+      refresh,
+    }),
+    [
+      acknowledgedAt,
+      acceptDisclosure,
+      errorMessage,
+      fallbackFrom,
+      isReady,
+      pendingProviderRefresh,
+      preferredProvider,
+      refresh,
+      refreshingProvider,
+      result,
+      setPreferredProvider,
+      status,
+    ],
+  );
+
+  return <WhereIpContext value={value}>{children}</WhereIpContext>;
+}
+
+export function useWhereIp(): WhereIpContextValue {
+  const context = use(WhereIpContext);
+  if (!context) {
+    throw new Error('useWhereIp must be used inside WhereIpProvider');
+  }
+  return context;
+}

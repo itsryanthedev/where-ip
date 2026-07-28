@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">WhereIP app mark</title>
+  <desc id="description">A white location pin containing a blue globe on a blue rounded square.</desc>
+  <defs>
+    <linearGradient id="background" x1="96" y1="64" x2="912" y2="960" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#49A8FF"/>
+      <stop offset=".56" stop-color="#0B84F3"/>
+      <stop offset="1" stop-color="#0A67C7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#background)"/>
+  <path d="M512 176c-169 0-306 132-306 295 0 218 257 427 286 450a33 33 0 0 0 40 0c29-23 286-232 286-450 0-163-137-295-306-295Z" fill="#fff"/>
+  <circle cx="512" cy="465" r="172" fill="#E8F5FF"/>
+  <circle cx="512" cy="465" r="172" fill="none" stroke="#0B84F3" stroke-width="34"/>
+  <path d="M349 465h326M512 293c-53 47-78 103-78 172s25 125 78 172m0-344c53 47 78 103 78 172s-25 125-78 172" fill="none" stroke="#0B84F3" stroke-linecap="round" stroke-width="28"/>
+  <circle cx="750" cy="229" r="58" fill="#52D5BC"/>
+</svg>
+

@@ -1,0 +1,1 @@
+WhereIP 1.0.4 — public IP lookup with approximate network location, transparent providers, and no account, ads, analytics, or GPS permission.

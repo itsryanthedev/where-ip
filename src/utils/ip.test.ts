@@ -1,0 +1,92 @@
+import {
+  countryCodeToFlag,
+  formatCountdown,
+  formatLocation,
+  formatLocationMeta,
+  formatTimezoneLocalTime,
+  inferIpVersion,
+  isUsablePublicIp,
+} from '@/utils/ip';
+
+describe('IP utilities', () => {
+  test('identifies IPv4 and IPv6 addresses', () => {
+    expect(inferIpVersion('8.8.8.8')).toBe(4);
+    expect(inferIpVersion('2606:4700:4700::1111')).toBe(6);
+    expect(inferIpVersion('not-an-ip')).toBeNull();
+  });
+
+  test('rejects private and loopback addresses', () => {
+    expect(isUsablePublicIp('192.168.1.2')).toBe(false);
+    expect(isUsablePublicIp('127.0.0.1')).toBe(false);
+    expect(isUsablePublicIp('::1')).toBe(false);
+    expect(isUsablePublicIp('fd00::1')).toBe(false);
+    expect(isUsablePublicIp('fe80::1')).toBe(false);
+    expect(isUsablePublicIp('ff02::1')).toBe(false);
+    expect(isUsablePublicIp('1.1.1.1')).toBe(true);
+  });
+
+  test('rejects special-purpose addresses that are not globally reachable', () => {
+    expect(isUsablePublicIp('100.64.0.1')).toBe(false);
+    expect(isUsablePublicIp('192.0.2.1')).toBe(false);
+    expect(isUsablePublicIp('198.18.0.1')).toBe(false);
+    expect(isUsablePublicIp('198.51.100.1')).toBe(false);
+    expect(isUsablePublicIp('203.0.113.1')).toBe(false);
+    expect(isUsablePublicIp('2001::1')).toBe(false);
+    expect(isUsablePublicIp('2001:5::1')).toBe(false);
+    expect(isUsablePublicIp('2001:2::1')).toBe(false);
+    expect(isUsablePublicIp('2001:20::1')).toBe(false);
+    expect(isUsablePublicIp('2001:db8::1')).toBe(false);
+    expect(isUsablePublicIp('3fff::1')).toBe(false);
+    expect(isUsablePublicIp('2606:4700:4700::1111')).toBe(true);
+  });
+
+  test('keeps IANA globally reachable 2001::/23 anycast carve-outs public', () => {
+    expect(isUsablePublicIp('2001:1::1')).toBe(true);
+    expect(isUsablePublicIp('2001:1::2')).toBe(true);
+    expect(isUsablePublicIp('2001:1::3')).toBe(true);
+    expect(isUsablePublicIp('2001:3::1')).toBe(true);
+    expect(isUsablePublicIp('2001:4:112::1')).toBe(true);
+  });
+
+  test('rejects malformed IPv6 addresses', () => {
+    expect(inferIpVersion('1:2:3:4:5:6:7:')).toBeNull();
+    expect(inferIpVersion('1:2:3:4:5:6:7:8:9')).toBeNull();
+    expect(inferIpVersion('1:2:3::4::5')).toBeNull();
+  });
+
+  test('turns ISO country codes into flags', () => {
+    expect(countryCodeToFlag('my')).toBe('🇲🇾');
+    expect(countryCodeToFlag(undefined)).toBe('🌐');
+  });
+
+  test('formats location without duplicate values', () => {
+    expect(formatLocation('Singapore', 'Singapore', 'Singapore')).toBe('Singapore');
+    expect(formatLocation(undefined, undefined, undefined)).toBe('Unavailable');
+  });
+
+  test('formats location meta from postal and coordinates', () => {
+    expect(formatLocationMeta('95110', 37.339, -121.895)).toBe(
+      'Postal 95110 · 37.339, -121.895',
+    );
+    expect(formatLocationMeta(undefined, 37.339, -121.895)).toBe(
+      '37.339, -121.895',
+    );
+    expect(formatLocationMeta('95110')).toBe('Postal 95110');
+    expect(formatLocationMeta()).toBeUndefined();
+  });
+
+  test('formats an estimated local time for a timezone', () => {
+    const now = new Date('2026-07-25T13:14:00.000Z');
+    expect(formatTimezoneLocalTime('America/Los_Angeles', now)).toMatch(
+      /6:14/,
+    );
+    expect(formatTimezoneLocalTime(undefined, now)).toBeUndefined();
+    expect(formatTimezoneLocalTime('Not/A_Zone', now)).toBeUndefined();
+  });
+
+  test('formats a stable minute countdown', () => {
+    expect(formatCountdown(60_000)).toBe('1:00');
+    expect(formatCountdown(9_100)).toBe('0:10');
+    expect(formatCountdown(-100)).toBe('0:00');
+  });
+});
