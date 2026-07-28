@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 280,
-    minWidth: 220,
+    minWidth: 0,
     minHeight: 132,
     borderWidth: 1,
     borderRadius: radii.card,

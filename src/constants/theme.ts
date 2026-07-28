@@ -104,3 +104,9 @@ export const motion = {
 } as const;
 
 export const contentMaxWidth = 960;
+
+/** Viewport widths below this use compact padding and typography. */
+export const compactBreakpoint = 620;
+
+/** Viewport widths at or above this are treated as tablet-or-wider layouts. */
+export const tabletBreakpoint = 768;

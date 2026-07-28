@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   introCopy: {
     flex: 1,
-    minWidth: 230,
+    minWidth: 0,
     gap: spacing.sm,
   },
   title: {
