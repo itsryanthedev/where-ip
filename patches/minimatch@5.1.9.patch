@@ -1,0 +1,22 @@
+diff --git a/changelog.md b/changelog.md
+deleted file mode 100644
+index 07decf76e641ab01e743dd6182081f41d02ae904..0000000000000000000000000000000000000000
+diff --git a/minimatch.js b/minimatch.js
+index 8545b3ab506a3185107a8f24a4c150a7b7b585f8..697ea50894b5ab783a26d9e624b86739144a7617 100644
+--- a/minimatch.js
++++ b/minimatch.js
+@@ -16,7 +16,13 @@ minimatch.sep = path.sep
+ 
+ const GLOBSTAR = Symbol('globstar **')
+ minimatch.GLOBSTAR = GLOBSTAR
+-const expand = require('brace-expansion')
++// brace-expansion@5 exports `{ expand }` instead of a default function.
++// Keep both shapes working so security overrides stay compatible.
++const braceExpansion = require('brace-expansion')
++const expand =
++  typeof braceExpansion === 'function'
++    ? braceExpansion
++    : braceExpansion && braceExpansion.expand
+ 
+ const plTypes = {
+   '!': { open: '(?:(?!(?:', close: '))[^/]*?)'},
