@@ -3,9 +3,11 @@
   "appName": "WhereIP",
   "themeId": "dark-bold",
   "connectedCanvas": true,
-  "locales": ["en"],
+  "locales": [
+    "en"
+  ],
   "locale": "en",
-  "device": "android",
+  "device": "iphone",
   "orientation": "portrait",
   "appIcon": "/app-icon.png",
   "slidesByDevice": {
@@ -13,29 +15,45 @@
       {
         "id": "ios-01-result",
         "layout": "device-bottom",
-        "label": { "en": "PUBLIC IP" },
-        "headline": { "en": "See what the\ninternet sees." },
+        "label": {
+          "en": "PUBLIC IP"
+        },
+        "headline": {
+          "en": "See what the\ninternet sees."
+        },
         "screenshot": "/screenshots/apple/iphone/en/01.png"
       },
       {
         "id": "ios-02-disclosure",
         "layout": "device-bottom",
-        "label": { "en": "PRIVACY FIRST" },
-        "headline": { "en": "No account.\nNo GPS.\nNo ads." },
+        "label": {
+          "en": "PRIVACY FIRST"
+        },
+        "headline": {
+          "en": "No account.\nNo GPS.\nNo ads."
+        },
         "screenshot": "/screenshots/apple/iphone/en/02.png"
       },
       {
         "id": "ios-03-providers",
         "layout": "device-bottom",
-        "label": { "en": "PROVIDERS" },
-        "headline": { "en": "Pick your\nlookup source." },
+        "label": {
+          "en": "PROVIDERS"
+        },
+        "headline": {
+          "en": "Pick your\nlookup source."
+        },
         "screenshot": "/screenshots/apple/iphone/en/03.png"
       },
       {
         "id": "ios-04-about",
         "layout": "device-bottom",
-        "label": { "en": "OPEN SOURCE" },
-        "headline": { "en": "Transparent\nby design." },
+        "label": {
+          "en": "OPEN SOURCE"
+        },
+        "headline": {
+          "en": "Transparent\nby design."
+        },
         "screenshot": "/screenshots/apple/iphone/en/04.png"
       }
     ],
@@ -43,29 +61,45 @@
       {
         "id": "and-01-result",
         "layout": "hero",
-        "label": { "en": "PUBLIC IP" },
-        "headline": { "en": "See what the\ninternet sees." },
+        "label": {
+          "en": "PUBLIC IP"
+        },
+        "headline": {
+          "en": "See what the\ninternet sees."
+        },
         "screenshot": "/screenshots/android/phone/en/01.png"
       },
       {
         "id": "and-02-disclosure",
         "layout": "device-bottom",
-        "label": { "en": "PRIVACY FIRST" },
-        "headline": { "en": "No account.\nNo GPS.\nNo ads." },
+        "label": {
+          "en": "PRIVACY FIRST"
+        },
+        "headline": {
+          "en": "No account.\nNo GPS.\nNo ads."
+        },
         "screenshot": "/screenshots/android/phone/en/02.png"
       },
       {
         "id": "and-03-providers",
         "layout": "device-bottom",
-        "label": { "en": "PROVIDERS" },
-        "headline": { "en": "Pick your\nlookup source." },
+        "label": {
+          "en": "PROVIDERS"
+        },
+        "headline": {
+          "en": "Pick your\nlookup source."
+        },
         "screenshot": "/screenshots/android/phone/en/03.png"
       },
       {
         "id": "and-04-about",
         "layout": "device-bottom",
-        "label": { "en": "OPEN SOURCE" },
-        "headline": { "en": "Transparent\nby design." },
+        "label": {
+          "en": "OPEN SOURCE"
+        },
+        "headline": {
+          "en": "Transparent\nby design."
+        },
         "screenshot": "/screenshots/android/phone/en/04.png"
       }
     ],
@@ -77,7 +111,9 @@
         "id": "fg-01",
         "layout": "feature-graphic",
         "label": {},
-        "headline": { "en": "Know what the internet sees." },
+        "headline": {
+          "en": "Know what the internet sees."
+        },
         "screenshot": ""
       }
     ]
