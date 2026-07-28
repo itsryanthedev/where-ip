@@ -48,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     ios: {
       bundleIdentifier: 'com.elmowjastudio.whereip',
-      buildNumber: '3',
+      buildNumber: '4',
       icon: './assets/images/app-icon.png',
       supportsTablet: true,
       infoPlist: {
@@ -57,7 +57,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: 'com.elmowjastudio.whereip',
-      versionCode: 3,
+      versionCode: 4,
       allowBackup: false,
       blockedPermissions: [
         'android.permission.READ_EXTERNAL_STORAGE',
