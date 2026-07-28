@@ -21,7 +21,6 @@ function resolveWebBaseUrl(rawValue: string | undefined): string {
 function readPackageVersion(): string {
   // Expo evaluates app.config with CommonJS interop; avoid node: builtins so
   // the app TypeScript project does not need @types/node.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const packageJson = require('./package.json') as { version: string };
   return packageJson.version;
 }
