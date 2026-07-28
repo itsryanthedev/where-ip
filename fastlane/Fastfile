@@ -18,11 +18,16 @@ platform :android do
     )
   end
 
-  desc "Upload Play Store listing metadata (text only; no binary/images)"
+  desc "Upload Play Store listing metadata (text only; no binary/images)
+  Note: classic `supply` needs an existing track release (AAB). Before the first
+  binary, use the Play Developer API listing edit (or Console) for text/icon."
   lane :play_metadata do
     supply(
       package_name: CredentialsManager::AppfileConfig.try_fetch_value(:package_name),
       json_key: CredentialsManager::AppfileConfig.try_fetch_value(:json_key_file),
+      track: "internal",
+      release_status: "draft",
+      changes_not_sent_for_review: true,
       skip_upload_apk: true,
       skip_upload_aab: true,
       skip_upload_changelogs: true,
