@@ -8,7 +8,6 @@ import {
   Share,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from 'react-native';
 
@@ -29,6 +28,7 @@ import {
   spacing,
 } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useCooldownRemainingMs } from '@/hooks/use-cooldown-remaining-ms';
 import { useWhereIp } from '@/providers/where-ip-provider';
 import type { ProviderId } from '@/types/ip';
@@ -90,7 +90,7 @@ function TimezoneDetailCard({ timezone }: { timezone?: string }) {
 
 export function Home() {
   const colors = useAppColors();
-  const { width } = useWindowDimensions();
+  const { isCompact } = useBreakpoint();
   const {
     isReady,
     result,
@@ -111,7 +111,6 @@ export function Home() {
   const copiedResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const isCompact = width < 620;
   const isLoading = status === 'loading' || status === 'refreshing';
   const provider = result ? getProvider(result.providerId) : null;
   const showMarketingHero = !result;
@@ -192,7 +191,12 @@ export function Home() {
           {showMarketingHero ? (
             <View style={styles.hero}>
               <AppLogo size={isCompact ? 78 : 92} />
-              <View style={styles.heroCopy}>
+              <View
+                style={[
+                  styles.heroCopy,
+                  isCompact ? styles.heroCopyCompact : null,
+                ]}
+              >
                 <Text style={[styles.eyebrow, { color: colors.accentText }]}>
                   Your public connection
                 </Text>
@@ -334,16 +338,24 @@ export function Home() {
                 </Text>
 
                 <View style={styles.ipActions}>
-                    <ActionButton
+                  <ActionButton
                     icon={<CopyIcon color={colors.onAccent} />}
                     label={copied ? 'Copied' : 'Copy IP'}
                     onPress={() => void copyIp()}
-                    style={styles.ipAction}
+                    style={
+                      isCompact
+                        ? { ...styles.ipAction, ...styles.ipActionCompact }
+                        : styles.ipAction
+                    }
                   />
                   <ActionButton
                     label="Share"
                     onPress={() => void shareResult()}
-                    style={styles.ipAction}
+                    style={
+                      isCompact
+                        ? { ...styles.ipAction, ...styles.ipActionCompact }
+                        : styles.ipAction
+                    }
                     variant="secondary"
                   />
                 </View>
@@ -354,7 +366,13 @@ export function Home() {
                     { borderTopColor: colors.border },
                   ]}
                 >
-                  <Text style={[styles.providerText, { color: colors.textMuted }]}>
+                  <Text
+                    style={[
+                      styles.providerText,
+                      isCompact ? styles.providerTextCompact : null,
+                      { color: colors.textMuted },
+                    ]}
+                  >
                     Checked {formatLookupTime(result.fetchedAt)} via{' '}
                     <Text style={{ color: colors.text, fontWeight: '700' }}>
                       {provider?.name}
@@ -453,6 +471,7 @@ export function Home() {
                 <View
                   style={[
                     styles.refreshCard,
+                    isCompact ? styles.refreshCardCompact : null,
                     {
                       backgroundColor: colors.surface,
                       borderColor: colors.border,
@@ -557,6 +576,9 @@ const styles = StyleSheet.create({
     minWidth: 240,
     gap: spacing.sm,
   },
+  heroCopyCompact: {
+    minWidth: 0,
+  },
   eyebrow: {
     fontSize: 12,
     lineHeight: 16,
@@ -650,6 +672,10 @@ const styles = StyleSheet.create({
   ipAction: {
     minWidth: 136,
   },
+  ipActionCompact: {
+    minWidth: 0,
+    flexGrow: 1,
+  },
   providerLine: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -666,6 +692,9 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontSize: 13,
     lineHeight: 18,
+  },
+  providerTextCompact: {
+    minWidth: 0,
   },
   notice: {
     borderWidth: 1,
@@ -693,6 +722,10 @@ const styles = StyleSheet.create({
     borderRadius: radii.card,
     borderCurve: 'continuous',
     padding: spacing.lg,
+  },
+  refreshCardCompact: {
+    minWidth: 0,
+    flexBasis: '100%',
   },
   footer: {
     fontSize: 13,

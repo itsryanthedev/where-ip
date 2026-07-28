@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   topRowCard: {
-    flexWrap: 'nowrap',
+    flexWrap: 'wrap',
     alignItems: 'flex-start',
   },
   ring: {
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   copy: {
     flex: 1,
-    minWidth: 180,
+    minWidth: 0,
     gap: spacing.xs,
   },
   copyCard: {
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
   },
   button: {
     minWidth: 120,
+    flexGrow: 1,
   },
   buttonCard: {
     alignSelf: 'stretch',

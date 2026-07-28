@@ -21,6 +21,7 @@ import { providerLinkId } from '@/constants/links';
 import { PROVIDERS } from '@/constants/providers';
 import { motion, radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import type { ProviderId } from '@/types/ip';
 
@@ -32,6 +33,12 @@ type ProviderSelectorProps = {
   providerSwitchRemainingMs?: number;
 };
 
+const MENU_MAX_WIDTH = 188;
+const POLICY_MAX_WIDTH = 310;
+const EDGE_GUTTER = spacing.lg * 2;
+/** Info button width plus gap; menu popover is inset by this from the trailing edge. */
+const MENU_END_OFFSET = 44 + spacing.sm;
+
 export function ProviderSelector({
   selectedProvider,
   onSelect,
@@ -40,6 +47,7 @@ export function ProviderSelector({
   providerSwitchRemainingMs = 0,
 }: ProviderSelectorProps) {
   const colors = useAppColors();
+  const { width: windowWidth, isCompact } = useBreakpoint();
   const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [policiesOpen, setPoliciesOpen] = useState(false);
@@ -52,6 +60,12 @@ export function ProviderSelector({
   );
   const popoverOpen = menuOpen || policiesOpen;
   const popoverTop = switchTarget ? 69 : 50;
+  const availableWidth = Math.max(0, windowWidth - EDGE_GUTTER);
+  const menuWidth = Math.min(
+    MENU_MAX_WIDTH,
+    Math.max(0, availableWidth - MENU_END_OFFSET),
+  );
+  const policyWidth = Math.min(POLICY_MAX_WIDTH, availableWidth);
   const chevronRotation = chevronProgress.interpolate({
     inputRange: [0, 1],
     outputRange: ['0deg', '180deg'],
@@ -90,7 +104,13 @@ export function ProviderSelector({
   };
 
   return (
-    <View style={[styles.container, { zIndex: popoverOpen ? 20 : 0 }]}>
+    <View
+      style={[
+        styles.container,
+        isCompact ? styles.containerCompact : null,
+        { zIndex: popoverOpen ? 20 : 0 },
+      ]}
+    >
       {popoverOpen ? (
         <Pressable
           accessibilityRole="button"
@@ -198,6 +218,7 @@ export function ProviderSelector({
             styles.menu,
             {
               top: popoverTop,
+              width: menuWidth,
               backgroundColor: colors.surface,
               borderColor: colors.border,
               boxShadow: `${shadows.popover} ${colors.shadow}`,
@@ -254,6 +275,7 @@ export function ProviderSelector({
             styles.policyPopover,
             {
               top: popoverTop,
+              width: policyWidth,
               backgroundColor: colors.surface,
               borderColor: colors.border,
               boxShadow: `${shadows.popover} ${colors.shadow}`,
@@ -300,7 +322,13 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
     minWidth: 240,
+    maxWidth: '100%',
     marginStart: 'auto',
+  },
+  containerCompact: {
+    minWidth: 0,
+    flexGrow: 1,
+    alignSelf: 'stretch',
   },
   dismissLayer: {
     position: 'absolute',
@@ -350,9 +378,9 @@ const styles = StyleSheet.create({
   menu: {
     position: 'absolute',
     top: 50,
-    end: 52,
+    end: MENU_END_OFFSET,
     zIndex: 3,
-    width: 188,
+    maxWidth: '100%',
     borderWidth: 1,
     borderRadius: radii.control,
     borderCurve: 'continuous',
@@ -380,7 +408,7 @@ const styles = StyleSheet.create({
   switchStatus: {
     zIndex: 2,
     paddingTop: spacing.xs,
-    paddingEnd: 52,
+    paddingEnd: MENU_END_OFFSET,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '600',
@@ -392,7 +420,7 @@ const styles = StyleSheet.create({
     top: 50,
     end: 0,
     zIndex: 3,
-    width: 310,
+    maxWidth: '100%',
     borderWidth: 1,
     borderRadius: radii.card,
     borderCurve: 'continuous',

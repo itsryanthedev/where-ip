@@ -44,8 +44,10 @@ const styles = StyleSheet.create({
   link: {
     minHeight: 44,
     flexDirection: 'row',
+    flexShrink: 1,
     alignItems: 'center',
     gap: spacing.xs,
+    minWidth: 0,
     paddingVertical: spacing.sm,
   },
   compact: {
@@ -53,6 +55,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   label: {
+    flexShrink: 1,
     fontSize: 15,
     lineHeight: 20,
     fontWeight: '600',

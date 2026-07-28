@@ -213,6 +213,9 @@ const styles = StyleSheet.create({
   },
   inlineLinks: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    flexShrink: 1,
+    minWidth: 0,
     gap: spacing.md,
   },
   actions: {
