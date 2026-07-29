@@ -37,16 +37,17 @@ copy_captures() {
 
 run_maestro() {
   local device_flag=("$@")
+  local app_id="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
   local stamp
   stamp="$(date +%s)"
   local work="${OUT_BASE}/.work-${stamp}"
   mkdir -p "$work"
 
   echo "==> Maestro: disclosure (02)"
-  "$MAESTRO" test "$FLOWS/02-disclosure.yaml" "${device_flag[@]}" --output "$work/disclosure"
+  "$MAESTRO" test "$FLOWS/02-disclosure.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/disclosure"
 
   echo "==> Maestro: result, provider, about (01, 03, 04)"
-  "$MAESTRO" test "$FLOWS/01-result-03-provider-04-about.yaml" "${device_flag[@]}" --output "$work/session"
+  "$MAESTRO" test "$FLOWS/01-result-03-provider-04-about.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/session"
 
   # Maestro names files like 02.png or with timestamps; normalize below.
   mkdir -p "$work/merged"
@@ -74,6 +75,7 @@ run_maestro() {
 
 case "${1:-}" in
   ios-ipad)
+    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.itsryanthedev.whereip}"
     DEVICE_NAME="${IOS_TABLET_SIM:-iPad Pro 13-inch (M5)}"
     DEST="${ROOT}/store-screenshots/public/screenshots/apple/ipad/en"
     RAW="${ROOT}/store-screenshots/raw/ios-ipad"
@@ -86,6 +88,7 @@ case "${1:-}" in
     copy_captures "$merged" "$RAW"
     ;;
   android-tablet-7)
+    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
     AVD="${ANDROID_TABLET_7_AVD:-Tablet_7}"
     DEST="${ROOT}/store-screenshots/public/screenshots/android/tablet-7/en"
     RAW="${ROOT}/store-screenshots/raw/android-tablet-7"
@@ -101,6 +104,7 @@ case "${1:-}" in
     copy_captures "$merged" "$RAW"
     ;;
   android-tablet-10)
+    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
     AVD="${ANDROID_TABLET_10_AVD:-Tablet_10}"
     DEST="${ROOT}/store-screenshots/public/screenshots/android/tablet-10/en"
     RAW="${ROOT}/store-screenshots/raw/android-tablet-10"
