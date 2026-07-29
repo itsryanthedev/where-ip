@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- launchApp
+- tapOn: "Acknowledge and continue"
+- extendedWaitUntil:
+    visible: "Provider,"
+    timeout: 60000
+- takeScreenshot: 01
+- tapOn: "Provider,"
+- extendedWaitUntil:
+    visible: "Preferred IP information provider"
+    timeout: 10000
+- takeScreenshot: 03
+- tapOn: "Dismiss provider menu"
+- tapOn: "About WhereIP and privacy"
+- extendedWaitUntil:
+    visible: "About WhereIP"
+    timeout: 15000
+- takeScreenshot: 04

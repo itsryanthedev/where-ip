@@ -103,9 +103,144 @@
         "screenshot": "/screenshots/android/phone/en/04.png"
       }
     ],
-    "ipad": [],
-    "android-7": [],
-    "android-10": [],
+    "ipad": [
+      {
+        "id": "ipad-01-result",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PUBLIC IP"
+        },
+        "headline": {
+          "en": "See what the\ninternet sees."
+        },
+        "screenshot": "/screenshots/apple/ipad/en/01.png"
+      },
+      {
+        "id": "ipad-02-disclosure",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PRIVACY FIRST"
+        },
+        "headline": {
+          "en": "No account.\nNo GPS.\nNo ads."
+        },
+        "screenshot": "/screenshots/apple/ipad/en/02.png"
+      },
+      {
+        "id": "ipad-03-providers",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PROVIDERS"
+        },
+        "headline": {
+          "en": "Pick your\nlookup source."
+        },
+        "screenshot": "/screenshots/apple/ipad/en/03.png"
+      },
+      {
+        "id": "ipad-04-about",
+        "layout": "device-bottom",
+        "label": {
+          "en": "OPEN SOURCE"
+        },
+        "headline": {
+          "en": "Transparent\nby design."
+        },
+        "screenshot": "/screenshots/apple/ipad/en/04.png"
+      }
+    ],
+    "android-7": [
+      {
+        "id": "and7-01-result",
+        "layout": "hero",
+        "label": {
+          "en": "PUBLIC IP"
+        },
+        "headline": {
+          "en": "See what the\ninternet sees."
+        },
+        "screenshot": "/screenshots/android/tablet-7/en/01.png"
+      },
+      {
+        "id": "and7-02-disclosure",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PRIVACY FIRST"
+        },
+        "headline": {
+          "en": "No account.\nNo GPS.\nNo ads."
+        },
+        "screenshot": "/screenshots/android/tablet-7/en/02.png"
+      },
+      {
+        "id": "and7-03-providers",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PROVIDERS"
+        },
+        "headline": {
+          "en": "Pick your\nlookup source."
+        },
+        "screenshot": "/screenshots/android/tablet-7/en/03.png"
+      },
+      {
+        "id": "and7-04-about",
+        "layout": "device-bottom",
+        "label": {
+          "en": "OPEN SOURCE"
+        },
+        "headline": {
+          "en": "Transparent\nby design."
+        },
+        "screenshot": "/screenshots/android/tablet-7/en/04.png"
+      }
+    ],
+    "android-10": [
+      {
+        "id": "and10-01-result",
+        "layout": "hero",
+        "label": {
+          "en": "PUBLIC IP"
+        },
+        "headline": {
+          "en": "See what the\ninternet sees."
+        },
+        "screenshot": "/screenshots/android/tablet-10/en/01.png"
+      },
+      {
+        "id": "and10-02-disclosure",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PRIVACY FIRST"
+        },
+        "headline": {
+          "en": "No account.\nNo GPS.\nNo ads."
+        },
+        "screenshot": "/screenshots/android/tablet-10/en/02.png"
+      },
+      {
+        "id": "and10-03-providers",
+        "layout": "device-bottom",
+        "label": {
+          "en": "PROVIDERS"
+        },
+        "headline": {
+          "en": "Pick your\nlookup source."
+        },
+        "screenshot": "/screenshots/android/tablet-10/en/03.png"
+      },
+      {
+        "id": "and10-04-about",
+        "layout": "device-bottom",
+        "label": {
+          "en": "OPEN SOURCE"
+        },
+        "headline": {
+          "en": "Transparent\nby design."
+        },
+        "screenshot": "/screenshots/android/tablet-10/en/04.png"
+      }
+    ],
     "feature-graphic": [
       {
         "id": "fg-01",
