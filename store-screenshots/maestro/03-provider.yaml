@@ -1,0 +1,5 @@
+appId: com.itsryanthedev.whereip
+---
+- tapOn: "Provider, IPinfo"
+- assertVisible: "Preferred IP information provider"
+- takeScreenshot: 03
