@@ -1,4 +1,4 @@
-appId: com.itsryanthedev.whereip
+appId: ${APP_ID}
 ---
 - tapOn: "About WhereIP and privacy"
 - assertVisible: "Simple by design."
