@@ -1,11 +1,10 @@
 appId: com.itsryanthedev.whereip
 ---
-- launchApp:
-    clearState: true
+- openLink: exp+where-ip://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081
 - tapOn: "Acknowledge and continue"
 - extendedWaitUntil:
     visible: "Provider,"
-    timeout: 60000
+    timeout: 90000
 - takeScreenshot: s01
 - tapOn: "Provider,"
 - extendedWaitUntil:

@@ -1,5 +1,5 @@
 appId: ${APP_ID}
 ---
-- tapOn: "Provider, IPinfo"
+- tapOn: "Provider,"
 - assertVisible: "Preferred IP information provider"
-- takeScreenshot: 03
+- takeScreenshot: s03

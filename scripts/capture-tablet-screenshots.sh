@@ -19,7 +19,7 @@ copy_captures() {
   mkdir -p "$dest_dir"
   for n in 01 02 03 04; do
     local found=""
-    for f in "$src_dir"/"${n}".png "$src_dir"/*-"${n}".png "$src_dir"/"${n}"*.png; do
+    for f in "$src_dir"/"${n}".png "$src_dir"/s"${n}".png "$src_dir"/s"${n}"*.png "$src_dir"/*-"${n}".png "$src_dir"/"${n}"*.png; do
       if [[ -f "$f" ]]; then
         found="$f"
         break
@@ -37,17 +37,30 @@ copy_captures() {
 
 run_maestro() {
   local device_flag=("$@")
-  local app_id="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
+  local platform_dir="${MAESTRO_PLATFORM_DIR:-}"
+  local flow_dir="$FLOWS"
+  if [[ -n "$platform_dir" && -d "$FLOWS/$platform_dir" ]]; then
+    flow_dir="$FLOWS/$platform_dir"
+  fi
+  local app_id="${MAESTRO_APP_ID:-com.itsryanthedev.whereip}"
   local stamp
   stamp="$(date +%s)"
   local work="${OUT_BASE}/.work-${stamp}"
   mkdir -p "$work"
 
   echo "==> Maestro: disclosure (02)"
-  "$MAESTRO" test "$FLOWS/02-disclosure.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/disclosure"
+  if [[ "$platform_dir" == "android" ]]; then
+    adb shell pm clear "${app_id}" 2>/dev/null || true
+    sleep 2
+  fi
+  "$MAESTRO" test "$flow_dir/02-disclosure.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/disclosure"
 
   echo "==> Maestro: result, provider, about (01, 03, 04)"
-  "$MAESTRO" test "$FLOWS/01-result-03-provider-04-about.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/session"
+  if [[ "$platform_dir" == "android" ]]; then
+    adb shell pm clear "${app_id}" 2>/dev/null || true
+    sleep 2
+  fi
+  "$MAESTRO" test "$flow_dir/01-result-03-provider-04-about.yaml" -e "APP_ID=${app_id}" "${device_flag[@]}" --output "$work/session"
 
   # Maestro names files like 02.png or with timestamps; normalize below.
   mkdir -p "$work/merged"
@@ -55,7 +68,7 @@ run_maestro() {
     found=""
     while IFS= read -r -d '' f; do
       found="$f"
-    done < <(find "$work" -name "${n}.png" -print -quit 2>/dev/null | tr '\n' '\0')
+    done < <(find "$work" -name "${n}.png" -o -name "s${n}.png" -print -quit 2>/dev/null | tr '\n' '\0')
     if [[ -z "$found" ]]; then
       while IFS= read -r -d '' f; do
         if [[ "$f" == *"${n}"* ]]; then
@@ -83,12 +96,13 @@ case "${1:-}" in
     echo "==> Booting ${DEVICE_NAME}"
     xcrun simctl boot "$DEVICE_NAME" 2>/dev/null || true
     open -a Simulator >/dev/null 2>&1 || true
+    export MAESTRO_PLATFORM_DIR=ios
     merged="$(run_maestro --device "$DEVICE_NAME")"
     copy_captures "$merged" "$DEST"
     copy_captures "$merged" "$RAW"
     ;;
   android-tablet-7)
-    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
+    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.itsryanthedev.whereip}"
     AVD="${ANDROID_TABLET_7_AVD:-Tablet_7}"
     DEST="${ROOT}/store-screenshots/public/screenshots/android/tablet-7/en"
     RAW="${ROOT}/store-screenshots/raw/android-tablet-7"
@@ -98,13 +112,14 @@ case "${1:-}" in
     EMU_PID=$!
     adb wait-for-device
     while [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]]; do sleep 2; done
+    export MAESTRO_PLATFORM_DIR=android
     merged="$(run_maestro)"
     kill "$EMU_PID" 2>/dev/null || true
     copy_captures "$merged" "$DEST"
     copy_captures "$merged" "$RAW"
     ;;
   android-tablet-10)
-    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.elmowjastudio.whereip}"
+    export MAESTRO_APP_ID="${MAESTRO_APP_ID:-com.itsryanthedev.whereip}"
     AVD="${ANDROID_TABLET_10_AVD:-Tablet_10}"
     DEST="${ROOT}/store-screenshots/public/screenshots/android/tablet-10/en"
     RAW="${ROOT}/store-screenshots/raw/android-tablet-10"
@@ -114,6 +129,7 @@ case "${1:-}" in
     EMU_PID=$!
     adb wait-for-device
     while [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" != "1" ]]; do sleep 2; done
+    export MAESTRO_PLATFORM_DIR=android
     merged="$(run_maestro)"
     kill "$EMU_PID" 2>/dev/null || true
     copy_captures "$merged" "$DEST"
