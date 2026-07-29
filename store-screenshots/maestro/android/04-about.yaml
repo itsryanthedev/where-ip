@@ -1,10 +1,11 @@
 appId: com.itsryanthedev.whereip
 ---
 - openLink: exp+where-ip://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081
-- extendedWaitUntil:
-    visible: "Acknowledge and continue"
-    timeout: 45000
-- tapOn: "Acknowledge and continue"
+- runFlow:
+    when:
+      visible: "Acknowledge and continue"
+    commands:
+      - tapOn: "Acknowledge and continue"
 - runFlow:
     when:
       visible: "Continue"
@@ -15,16 +16,14 @@ appId: com.itsryanthedev.whereip
       visible: "Go home"
     commands:
       - tapOn: "Go home"
+- runFlow:
+    when:
+      visible: "http://10.0.2.2:8081"
+    commands:
+      - tapOn: "http://10.0.2.2:8081"
 - extendedWaitUntil:
-    visible: "Copy IP"
+    visible: "Up to date"
     timeout: 120000
-- takeScreenshot: s01
-- tapOn: "Provider,"
-- extendedWaitUntil:
-    visible: "Preferred IP information provider"
-    timeout: 10000
-- takeScreenshot: s03
-- tapOn: "Dismiss provider menu"
 - openLink: whereip://about
 - extendedWaitUntil:
     visible: "Simple by design."

@@ -1,6 +1,16 @@
 appId: com.itsryanthedev.whereip
 ---
 - openLink: exp+where-ip://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081
+- runFlow:
+    when:
+      visible: "Continue"
+    commands:
+      - tapOn: "Continue"
+- runFlow:
+    when:
+      visible: "Go home"
+    commands:
+      - tapOn: "Go home"
 - extendedWaitUntil:
     visible: "Privacy, in plain language"
     timeout: 30000

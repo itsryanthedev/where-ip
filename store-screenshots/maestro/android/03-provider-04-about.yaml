@@ -1,0 +1,13 @@
+appId: com.itsryanthedev.whereip
+---
+- tapOn: "Provider, ipwho.is"
+- extendedWaitUntil:
+    visible: "Preferred IP information provider"
+    timeout: 10000
+- takeScreenshot: s03
+- tapOn: "Dismiss provider menu"
+- openLink: whereip://about
+- extendedWaitUntil:
+    visible: "Simple by design."
+    timeout: 15000
+- takeScreenshot: s04
