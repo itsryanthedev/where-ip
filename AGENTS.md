@@ -158,6 +158,36 @@ when a scoped environment credential is sufficient.
   copy is unavoidable, use a directory outside the worktree and securely remove
   it after use.
 
+## Expo CLI versus Expo MCP
+
+Do not use the Expo MCP server for builds, submissions, workflows, credentials,
+logs, store status, or other EAS operations in this repository. Prefer the Expo
+and EAS CLIs in the terminal instead. The maintainer's local CLI session is the
+source of truth; MCP OAuth is not configured for agent use here.
+
+Use `pnpm exec` (or the matching `package.json` script) rather than calling MCP
+tools:
+
+- account and project context: `pnpm exec expo whoami`, `pnpm exec eas whoami`,
+  `pnpm exec eas project:info`;
+- builds: `pnpm exec eas build:list`, `pnpm exec eas build:view`,
+  `pnpm exec eas build`, `pnpm exec eas build:cancel`;
+- submissions: `pnpm exec eas submit`, `pnpm exec eas build:view` (for linked
+  build status before submit);
+- workflows: `pnpm exec eas workflow:runs`, `pnpm exec eas workflow:logs`,
+  `pnpm exec eas workflow:run`, `pnpm exec eas workflow:cancel`;
+- credentials and config: `pnpm exec eas credentials`, `pnpm exec eas config`,
+  `pnpm exec eas env:list`;
+- local development: `pnpm start`, `pnpm run ios`, `pnpm run android`,
+  `pnpm run export:web`;
+- dependencies: `pnpm exec expo install <package>`.
+
+For Expo documentation, read `https://docs.expo.dev` pages directly or fetch
+them over HTTPS. Do not call Expo MCP documentation tools.
+
+If a task appears to require Expo MCP, stop and use the equivalent CLI command
+or ask the maintainer to run the privileged step locally.
+
 ## Electron security
 
 The desktop shell under `electron/` is implemented and must keep these
