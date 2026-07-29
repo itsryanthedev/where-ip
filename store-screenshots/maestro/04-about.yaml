@@ -1,5 +1,5 @@
 appId: ${APP_ID}
 ---
 - tapOn: "About WhereIP and privacy"
-- assertVisible: "Simple by design."
-- takeScreenshot: 04
+- assertVisible: "About WhereIP"
+- takeScreenshot: s04
