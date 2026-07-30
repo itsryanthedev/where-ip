@@ -96,9 +96,11 @@ async function main() {
   const child = startDevServer();
   try {
     await waitForServer();
-    const browser = await chromium.launch();
+    const browser = await chromium.launch({
+      executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined,
+    });
     const page = await browser.newPage();
-    await page.goto(BASE, { waitUntil: "networkidle" });
+    await page.goto(BASE, { waitUntil: "domcontentloaded" });
     await page.waitForTimeout(2500);
 
     const tmpRoot = path.join(ROOT, ".export-tmp");

@@ -1,0 +1,1 @@
+WhereIP does not require an account or sign-in. App Review can use the app immediately to look up the device's public IP address and view the returned network information.
