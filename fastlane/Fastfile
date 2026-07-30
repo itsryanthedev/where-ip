@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 default_platform(:android)
 
 platform :android do
@@ -48,4 +50,43 @@ platform :android do
       metadata_path: "fastlane/metadata/android"
     )
   end
+end
+
+platform :ios do
+  desc "Upload App Store Connect metadata and screenshots without submitting for review"
+  lane :app_store_metadata do
+    # Fastlane 2.237.0 attempts to fetch an optional review attachment even
+    # when none is configured. App Store Connect returns an empty response for
+    # this new version, so skip only that optional step and keep all metadata
+    # and screenshot uploads enabled.
+    require "deliver/upload_metadata"
+    Deliver::UploadMetadata.class_eval do
+      def review_attachment_file(_version)
+        UI.message("No App Review attachment configured; skipping attachment upload")
+      end
+    end
+
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV.fetch("ASC_KEY_PATH"),
+      duration: 1_200,
+      in_house: false
+    )
+
+    deliver(
+      api_key: api_key,
+      app_identifier: "com.elmowjastudio.whereip",
+      app_version: JSON.parse(File.read("../package.json"))["version"],
+      metadata_path: "fastlane/metadata/ios",
+      screenshots_path: "fastlane/screenshots",
+      skip_binary_upload: true,
+      overwrite_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      app_rating_config_path: File.expand_path("metadata/ios/age_rating.json"),
+      force: true
+    )
+  end
+
 end
