@@ -90,7 +90,7 @@ function TimezoneDetailCard({ timezone }: { timezone?: string }) {
 
 export function Home() {
   const colors = useAppColors();
-  const { isCompact } = useBreakpoint();
+  const { isCompact, isTabletOrLarger, width } = useBreakpoint();
   const {
     isReady,
     result,
@@ -114,6 +114,8 @@ export function Home() {
   const isLoading = status === 'loading' || status === 'refreshing';
   const provider = result ? getProvider(result.providerId) : null;
   const showMarketingHero = !result;
+  const useSplitHero = isTabletOrLarger;
+  const ipAddressFontSize = isCompact ? 29 : width < 900 ? 34 : 42;
 
   useEffect(() => {
     return () => {
@@ -317,46 +319,86 @@ export function Home() {
                   </Text>
                 </View>
 
-                <Text style={[styles.ipLabel, { color: colors.textMuted }]}>
-                  PUBLIC IP ADDRESS
-                </Text>
-                <Text
-                  selectable
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.62}
-                  numberOfLines={1}
+                <View
                   style={[
-                    styles.ipAddress,
-                    {
-                      color: colors.text,
-                      fontSize: isCompact ? 29 : 42,
-                      lineHeight: isCompact ? 38 : 52,
-                    },
+                    styles.heroBody,
+                    useSplitHero ? styles.heroBodySplit : styles.heroBodyStacked,
                   ]}
                 >
-                  {result.ip}
-                </Text>
+                  <View
+                    style={[
+                      styles.ipSummary,
+                      useSplitHero ? null : styles.ipSummaryStacked,
+                    ]}
+                  >
+                    <Text style={[styles.ipLabel, { color: colors.textMuted }]}>
+                      PUBLIC IP ADDRESS
+                    </Text>
+                    <Text
+                      selectable
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.62}
+                      numberOfLines={1}
+                      style={[
+                        styles.ipAddress,
+                        {
+                          color: colors.text,
+                          fontSize: ipAddressFontSize,
+                          lineHeight: isCompact ? 38 : 44,
+                        },
+                      ]}
+                    >
+                      {result.ip}
+                    </Text>
 
-                <View style={styles.ipActions}>
-                  <ActionButton
-                    icon={<CopyIcon color={colors.onAccent} />}
-                    label={copied ? 'Copied' : 'Copy IP'}
-                    onPress={() => void copyIp()}
-                    style={
-                      isCompact
-                        ? { ...styles.ipAction, ...styles.ipActionCompact }
-                        : styles.ipAction
-                    }
-                  />
-                  <ActionButton
-                    label="Share"
-                    onPress={() => void shareResult()}
-                    style={
-                      isCompact
-                        ? { ...styles.ipAction, ...styles.ipActionCompact }
-                        : styles.ipAction
-                    }
-                    variant="secondary"
+                    <View style={styles.ipActions}>
+                      <ActionButton
+                        icon={<CopyIcon color={colors.onAccent} />}
+                        label={copied ? 'Copied' : 'Copy IP'}
+                        onPress={() => void copyIp()}
+                        style={
+                          isCompact
+                            ? { ...styles.ipAction, ...styles.ipActionCompact }
+                            : styles.ipAction
+                        }
+                      />
+                      <ActionButton
+                        label="Share"
+                        onPress={() => void shareResult()}
+                        style={
+                          isCompact
+                            ? { ...styles.ipAction, ...styles.ipActionCompact }
+                            : styles.ipAction
+                        }
+                        variant="secondary"
+                      />
+                    </View>
+                  </View>
+
+                  <DetailCard
+                    label="Approximate location"
+                    supportingText="Estimated from your public IP — never GPS."
+                    metaText={formatLocationMeta(
+                      result.postalCode,
+                      result.latitude,
+                      result.longitude,
+                    )}
+                    style={[
+                      styles.heroLocationCard,
+                      {
+                        backgroundColor: colors.surfaceRaised,
+                        borderColor: colors.border,
+                        boxShadow: 'none',
+                      },
+                      useSplitHero
+                        ? styles.heroLocationCardSplit
+                        : styles.heroLocationCardStacked,
+                    ]}
+                    value={formatLocation(
+                      result.city,
+                      result.region,
+                      result.countryName ?? result.countryCode,
+                    )}
                   />
                 </View>
 
@@ -432,41 +474,6 @@ export function Home() {
                 fromTranslateY={motion.offset.content}
                 style={styles.detailGrid}
               >
-                <DetailCard
-                  label="Approximate location"
-                  supportingText="Estimated from your public IP — never GPS."
-                  metaText={formatLocationMeta(
-                    result.postalCode,
-                    result.latitude,
-                    result.longitude,
-                  )}
-                  value={formatLocation(
-                    result.city,
-                    result.region,
-                    result.countryName ?? result.countryCode,
-                  )}
-                />
-                <DetailCard
-                  label="Network"
-                  supportingText={
-                    result.asn
-                      ? `Network ID ${result.asn}`
-                      : 'Network ID unavailable'
-                  }
-                  value={result.organization ?? result.isp ?? 'Unavailable'}
-                />
-                <DetailCard
-                  label="Connection"
-                  supportingText="Internet Protocol version from the provider"
-                  value={`IPv${result.ipVersion}`}
-                />
-              </RevealView>
-
-              <RevealView
-                duration={motion.duration.content}
-                fromTranslateY={motion.offset.content}
-                style={styles.detailGrid}
-              >
                 <TimezoneDetailCard timezone={result.timezone} />
                 <View
                   style={[
@@ -486,6 +493,27 @@ export function Home() {
                     variant="card"
                   />
                 </View>
+              </RevealView>
+
+              <RevealView
+                duration={motion.duration.content}
+                fromTranslateY={motion.offset.content}
+                style={styles.detailGrid}
+              >
+                <DetailCard
+                  label="Network"
+                  supportingText={
+                    result.asn
+                      ? `Network ID ${result.asn}`
+                      : 'Network ID unavailable'
+                  }
+                  value={result.organization ?? result.isp ?? 'Unavailable'}
+                />
+                <DetailCard
+                  label="Connection"
+                  supportingText="Internet Protocol version from the provider"
+                  value={`IPv${result.ipVersion}`}
+                />
               </RevealView>
             </>
           ) : (
@@ -652,7 +680,6 @@ const styles = StyleSheet.create({
     lineHeight: 42,
   },
   ipLabel: {
-    marginTop: spacing.sm,
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '800',
@@ -662,6 +689,43 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -1,
     fontVariant: ['tabular-nums'],
+  },
+  heroBody: {
+    gap: spacing.xl,
+  },
+  heroBodySplit: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  heroBodyStacked: {
+    flexDirection: 'column',
+  },
+  ipSummary: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    gap: spacing.md,
+  },
+  ipSummaryStacked: {
+    flexGrow: 0,
+    flexBasis: 'auto',
+  },
+  heroLocationCard: {
+    padding: spacing.xl,
+  },
+  heroLocationCardSplit: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    minHeight: 0,
+  },
+  heroLocationCardStacked: {
+    flexGrow: 0,
+    flexBasis: 'auto',
+    width: '100%',
+    minHeight: 0,
   },
   ipActions: {
     flexDirection: 'row',
