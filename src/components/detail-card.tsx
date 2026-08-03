@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { radii, shadows, spacing } from '@/constants/theme';
 import { useAppColors } from '@/hooks/use-app-colors';
@@ -11,6 +17,7 @@ type DetailCardProps = {
   metaText?: string;
   leading?: ReactNode;
   tabularValue?: boolean;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function DetailCard({
@@ -20,6 +27,7 @@ export function DetailCard({
   metaText,
   leading,
   tabularValue = false,
+  style,
 }: DetailCardProps) {
   const colors = useAppColors();
 
@@ -32,6 +40,7 @@ export function DetailCard({
           borderColor: colors.border,
           boxShadow: `${shadows.card} ${colors.shadow}`,
         },
+        style,
       ]}
     >
       <View style={styles.labelRow}>
