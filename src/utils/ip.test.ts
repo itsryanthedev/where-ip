@@ -40,7 +40,10 @@ describe('IP utilities', () => {
     expect(isUsablePublicIp('2606:4700:4700::1111')).toBe(true);
   });
 
-  test('keeps IANA globally reachable 2001::/23 anycast carve-outs public', () => {
+  test('keeps IANA globally reachable special-use carve-outs public', () => {
+    expect(isUsablePublicIp('192.0.0.9')).toBe(true);
+    expect(isUsablePublicIp('192.0.0.10')).toBe(true);
+    expect(isUsablePublicIp('192.0.0.1')).toBe(false);
     expect(isUsablePublicIp('2001:1::1')).toBe(true);
     expect(isUsablePublicIp('2001:1::2')).toBe(true);
     expect(isUsablePublicIp('2001:1::3')).toBe(true);
@@ -49,6 +52,7 @@ describe('IP utilities', () => {
   });
 
   test('rejects malformed IPv6 addresses', () => {
+    expect(inferIpVersion('010.0.0.1')).toBeNull();
     expect(inferIpVersion('1:2:3:4:5:6:7:')).toBeNull();
     expect(inferIpVersion('1:2:3:4:5:6:7:8:9')).toBeNull();
     expect(inferIpVersion('1:2:3::4::5')).toBeNull();

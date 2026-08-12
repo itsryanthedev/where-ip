@@ -1,7 +1,10 @@
 'use strict';
 
+/* global __dirname */
+
 const fs = require('node:fs');
 const path = require('node:path');
+const { assertSafeTree, isPrivatePackagePath } = require('./scripts/package-security.cjs');
 
 /**
  * Electron Forge config for unsigned Phase 4 packaging.
@@ -20,6 +23,9 @@ module.exports = {
     ignore: (filePath) => {
       if (!filePath) {
         return false;
+      }
+      if (isPrivatePackagePath(filePath)) {
+        return true;
       }
       // @electron/packager passes app-root-relative paths with a leading `/`
       // (see copy-filter.js). Keep dist-desktop out of the ASAR; it ships only
@@ -53,7 +59,11 @@ module.exports = {
     },
   ],
   hooks: {
+    packageBeforeCopy: async () => {
+      assertSafeTree(path.resolve(__dirname, 'dist-desktop'));
+    },
     packageAfterCopy: async (_config, buildPath) => {
+      assertSafeTree(buildPath);
       const packageJsonPath = path.join(buildPath, 'package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
       packageJson.main = 'electron/main/index.cjs';

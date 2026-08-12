@@ -11,7 +11,11 @@ export function countryCodeToFlag(countryCode?: string): string {
   );
 }
 
-export function inferIpVersion(ip: string): IpVersion | null {
+export function inferIpVersion(ip: unknown): IpVersion | null {
+  if (typeof ip !== 'string') {
+    return null;
+  }
+
   if (isValidIpv4(ip)) {
     return 4;
   }
@@ -27,6 +31,13 @@ export function isUsablePublicIp(ip: string): boolean {
   const version = inferIpVersion(ip);
   if (version === 4) {
     const address = ipv4ToNumber(ip);
+    if (
+      PUBLIC_IPV4_CARVE_OUTS.some(([network, prefixLength]) =>
+        isIpv4InCidr(address, network, prefixLength),
+      )
+    ) {
+      return true;
+    }
     return !NON_PUBLIC_IPV4_RANGES.some(([network, prefixLength]) =>
       isIpv4InCidr(address, network, prefixLength),
     );
@@ -69,6 +80,12 @@ const NON_PUBLIC_IPV4_RANGES: readonly (readonly [string, number])[] = [
   ['198.51.100.0', 24],
   ['203.0.113.0', 24],
   ['224.0.0.0', 3],
+];
+
+// 192.0.0.0/24 is special-use; keep IANA globally reachable AS112 exceptions.
+const PUBLIC_IPV4_CARVE_OUTS: readonly (readonly [string, number])[] = [
+  ['192.0.0.9', 32],
+  ['192.0.0.10', 32],
 ];
 
 // 2001::/23 is the IETF Protocol Assignments pool (not globally usable by
@@ -211,7 +228,7 @@ function isValidIpv4(ip: string): boolean {
         return false;
       }
       const value = Number(part);
-      return value >= 0 && value <= 255 && String(value) === part.replace(/^0+(?=\d)/, '');
+      return value >= 0 && value <= 255 && String(value) === part;
     })
   );
 }

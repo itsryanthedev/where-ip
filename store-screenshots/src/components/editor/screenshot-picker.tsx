@@ -4,6 +4,12 @@ import { Image as ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { didFail, img, setImage } from "@/lib/image-cache";
 import { resolveScreenshot } from "@/lib/locale";
+import { MAX_PROJECT_ASSET_BYTES } from "@/lib/project-sanitizer";
+import {
+  EDITOR_REQUEST_TOKEN_HEADER,
+  getProjectRequestToken,
+} from "@/lib/request-token";
+import { MAX_UPLOAD_BYTES } from "@/lib/upload-constants";
 
 type Props = {
   label: string;
@@ -25,9 +31,13 @@ async function fileToDataUrl(file: File): Promise<string> {
 
 async function uploadDataUrl(dataUrl: string): Promise<string | null> {
   try {
+    const token = getProjectRequestToken();
     const resp = await fetch("/api/upload", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...(token ? { [EDITOR_REQUEST_TOKEN_HEADER]: token } : {}),
+      },
       body: JSON.stringify({ dataUrl }),
     });
     if (!resp.ok) return null;
@@ -54,8 +64,8 @@ export function ScreenshotPicker({ label, value, locale, onChange }: Props) {
       setError("Use PNG or JPG (App Store rejects other formats)");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setError("Image too large (>8MB)");
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError(`Image too large (>${MAX_UPLOAD_BYTES / (1024 * 1024)}MB)`);
       return;
     }
     let dataUrl: string;
@@ -75,6 +85,10 @@ export function ScreenshotPicker({ label, value, locale, onChange }: Props) {
       setImage(uploadedPath, dataUrl);
       onChange(uploadedPath);
     } else {
+      if (file.size > MAX_PROJECT_ASSET_BYTES) {
+        setError("Could not save to disk — image is too large for in-session fallback");
+        return;
+      }
       setError("Could not save to disk — keeping image in this session only");
       setImage(dataUrl, dataUrl);
       onChange(dataUrl);

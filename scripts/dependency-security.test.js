@@ -64,11 +64,11 @@ describe('dependency security floor', () => {
     }
   });
 
-  test('overrides keep brace-expansion at the patched 5.0.8+ line', () => {
+  test('overrides keep brace-expansion at the patched 5.0.9+ line', () => {
     const versions = lockfilePackageVersions('brace-expansion');
     expect(versions.length).toBeGreaterThan(0);
     for (const version of versions) {
-      expect(compareSemver(version, '5.0.8')).toBeGreaterThanOrEqual(0);
+      expect(compareSemver(version, '5.0.9')).toBeGreaterThanOrEqual(0);
     }
   });
 
@@ -102,9 +102,16 @@ describe('dependency security floor', () => {
     );
 
     expect(workspace).toMatch(/tar@<7\.5\.21:\s*7\.5\.22/);
-    expect(workspace).toMatch(/brace-expansion@<=5\.0\.7:\s*5\.0\.8/);
+    expect(workspace).toMatch(/brace-expansion@<5\.0\.9:\s*5\.0\.9/);
+    expect(workspace).toMatch(/js-yaml@>=3\.0\.0 <3\.15\.1:\s*3\.15\.1/);
+    expect(workspace).toMatch(/js-yaml@>=4\.0\.0 <4\.3\.1:\s*4\.3\.1/);
+    expect(workspace).toMatch(/nanoid@>=3\.0\.0 <3\.3\.17:\s*3\.3\.17/);
+    expect(workspace).toMatch(/ip-address@<=10\.3\.0:\s*10\.3\.1/);
     expect(workspace).toMatch(/minimatch@3\.1\.5:\s*patches\/minimatch@3\.1\.5\.patch/);
     expect(workspace).toMatch(/minimatch@5\.1\.9:\s*patches\/minimatch@5\.1\.9\.patch/);
     expect(workspace).toMatch(/minimatch@9\.0\.9:\s*patches\/minimatch@9\.0\.9\.patch/);
+    // Temporary until image-size publishes >=2.0.3 (npm still tops out at 2.0.2).
+    expect(workspace).toMatch(/GHSA-w3rx-r6r6-pgpr/);
+    expect(workspace).toMatch(/GHSA-5p2g-fcmc-qvqq/);
   });
 });

@@ -37,7 +37,7 @@ describe('desktop bridge adapter', () => {
 
   test('lookupPublicIp uses providerLookup when provided', async () => {
     const result: IpResult = {
-      ip: '203.0.113.50',
+      ip: '8.8.8.8',
       ipVersion: 4,
       countryCode: 'US',
       providerId: 'ipinfo',

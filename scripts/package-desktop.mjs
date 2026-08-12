@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const { assertSafeTree } = require('./package-security.cjs');
 
 function electronPackageRoot() {
   return path.dirname(require.resolve('electron/package.json'));
@@ -198,6 +199,9 @@ async function main() {
       'Missing dist-desktop/. Run `pnpm run export:desktop` first.',
     );
   }
+
+  assertSafeTree(path.join(projectRoot, 'electron'));
+  assertSafeTree(distDesktop);
 
   fs.mkdirSync(outRoot, { recursive: true });
 

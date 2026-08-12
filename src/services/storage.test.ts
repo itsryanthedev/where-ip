@@ -128,4 +128,30 @@ describe('persisted state validation', () => {
 
     expect((await loadPersistedState()).cache).toBeNull();
   });
+
+  test('rejects future consent and cache timestamps', async () => {
+    const future = new Date(Date.now() + 60_000).toISOString();
+    mockMultiGet.mockResolvedValue(
+      persistedEntries({
+        settings: {
+          preferredProvider: 'ipinfo',
+          acknowledgedAt: future,
+        },
+        cache: {
+          ip: '8.8.8.8',
+          ipVersion: 4,
+          countryCode: 'US',
+          providerId: 'ipinfo',
+          fetchedAt: future,
+        },
+      }),
+    );
+
+    await expect(loadPersistedState()).resolves.toMatchObject({
+      settings: {
+        acknowledgedAt: null,
+      },
+      cache: null,
+    });
+  });
 });

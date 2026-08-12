@@ -198,6 +198,7 @@ function isCanonicalIsoDate(value: unknown): value is string {
   const timestamp = Date.parse(value);
   return (
     Number.isFinite(timestamp) &&
+    timestamp <= Date.now() &&
     new Date(timestamp).toISOString() === value
   );
 }

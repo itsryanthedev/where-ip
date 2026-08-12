@@ -2,70 +2,69 @@ import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { isLocalRequest } from "@/lib/local-request";
+import {
+  InvalidContentLengthError,
+  isEditorRequest,
+  readBoundedRequestText,
+  RequestBodyTooLargeError,
+} from "@/lib/local-request";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_DATA_URL_CHARS } from "@/lib/upload-constants";
+import {
+  matchesMagic,
+  MIME_EXT,
+  parseDataUrl,
+} from "./upload-validation";
 
 export const dynamic = "force-dynamic";
 
 const UPLOAD_DIR_REL = path.join("public", "screenshots", "uploaded");
 const PUBLIC_PREFIX = "/screenshots/uploaded";
-const MAX_BYTES = 8 * 1024 * 1024;
-const MAX_DATA_URL_CHARS = Math.ceil(MAX_BYTES * (4 / 3)) + 128;
+const MAX_UPLOAD_FILES = 256;
+const MAX_UPLOAD_DIRECTORY_BYTES = 256 * 1024 * 1024;
+const UPLOAD_SIZE_ERROR = `Image too large (>${Math.ceil(MAX_UPLOAD_BYTES / (1024 * 1024))}MB)`;
 
-const MIME_EXT: Record<string, string> = {
-  "image/png": "png",
-  "image/jpeg": "jpg",
-  "image/jpg": "jpg",
-};
+let uploadLock = Promise.resolve();
 
-function parseDataUrl(dataUrl: string): { mime: string; bytes: Buffer } | null {
-  const m = /^data:([^;]+);base64,(.+)$/.exec(dataUrl);
-  if (!m) return null;
-  const mime = m[1].toLowerCase();
-  const bytes = Buffer.from(m[2], "base64");
-  return { mime, bytes };
-}
-
-function matchesMagic(mime: string, bytes: Buffer): boolean {
-  if (bytes.length < 3) return false;
-  if (mime === "image/png") {
-    return (
-      bytes.length >= 8 &&
-      bytes[0] === 0x89 &&
-      bytes[1] === 0x50 &&
-      bytes[2] === 0x4e &&
-      bytes[3] === 0x47
-    );
+async function withUploadLock<T>(operation: () => Promise<T>): Promise<T> {
+  const previous = uploadLock;
+  let release!: () => void;
+  uploadLock = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
   }
-  if (mime === "image/jpeg" || mime === "image/jpg") {
-    return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  }
-  return false;
 }
 
 export async function POST(req: Request) {
-  if (!isLocalRequest(req)) {
+  if (!isEditorRequest(req)) {
     return NextResponse.json(
       { ok: false, error: "Uploads are only allowed from localhost" },
       { status: 403 },
     );
   }
 
-  const contentLength = Number(req.headers.get("content-length") || "0");
-  if (contentLength > MAX_DATA_URL_CHARS + 256) {
-    return NextResponse.json({ ok: false, error: "Image too large (>8MB)" }, { status: 413 });
-  }
-
   let body: { dataUrl?: string };
   try {
-    body = (await req.json()) as { dataUrl?: string };
-  } catch {
+    const raw = await readBoundedRequestText(req, MAX_UPLOAD_DATA_URL_CHARS + 256);
+    body = JSON.parse(raw) as { dataUrl?: string };
+  } catch (e) {
+    if (e instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ ok: false, error: UPLOAD_SIZE_ERROR }, { status: 413 });
+    }
+    if (e instanceof InvalidContentLengthError) {
+      return NextResponse.json({ ok: false, error: "Invalid content length" }, { status: 400 });
+    }
     return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
   }
   if (!body?.dataUrl || typeof body.dataUrl !== "string") {
     return NextResponse.json({ ok: false, error: "Missing dataUrl" }, { status: 400 });
   }
-  if (body.dataUrl.length > MAX_DATA_URL_CHARS) {
-    return NextResponse.json({ ok: false, error: "Image too large (>8MB)" }, { status: 413 });
+  if (body.dataUrl.length > MAX_UPLOAD_DATA_URL_CHARS) {
+    return NextResponse.json({ ok: false, error: UPLOAD_SIZE_ERROR }, { status: 413 });
   }
   const parsed = parseDataUrl(body.dataUrl);
   if (!parsed) {
@@ -78,8 +77,8 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (parsed.bytes.byteLength > MAX_BYTES) {
-    return NextResponse.json({ ok: false, error: "Image too large (>8MB)" }, { status: 413 });
+  if (parsed.bytes.byteLength > MAX_UPLOAD_BYTES) {
+    return NextResponse.json({ ok: false, error: UPLOAD_SIZE_ERROR }, { status: 413 });
   }
   if (!matchesMagic(parsed.mime, parsed.bytes)) {
     return NextResponse.json(
@@ -94,24 +93,39 @@ export async function POST(req: Request) {
   const absFile = path.join(absDir, filename);
   const absTemp = `${absFile}.${process.pid}.tmp`;
 
-  try {
-    await fs.mkdir(absDir, { recursive: true });
+  return withUploadLock(async () => {
     try {
-      await fs.access(absFile);
-    } catch {
-      await fs.writeFile(absTemp, parsed.bytes);
-      await fs.rename(absTemp, absFile);
+      await fs.mkdir(absDir, { recursive: true });
+      const entries = await fs.readdir(absDir, { withFileTypes: true });
+      let fileCount = 0;
+      let directoryBytes = 0;
+      for (const entry of entries) {
+        if (!entry.isFile()) continue;
+        fileCount += 1;
+        directoryBytes += (await fs.stat(path.join(absDir, entry.name))).size;
+      }
+      const alreadyExists = await fs.access(absFile).then(() => true).catch(() => false);
+      if (!alreadyExists && fileCount >= MAX_UPLOAD_FILES) {
+        return NextResponse.json({ ok: false, error: "Upload directory file limit reached" }, { status: 413 });
+      }
+      if (!alreadyExists && directoryBytes + parsed.bytes.byteLength > MAX_UPLOAD_DIRECTORY_BYTES) {
+        return NextResponse.json({ ok: false, error: "Upload directory size limit reached" }, { status: 413 });
+      }
+      if (!alreadyExists) {
+        await fs.writeFile(absTemp, parsed.bytes);
+        await fs.rename(absTemp, absFile);
+      }
+      return NextResponse.json({ ok: true, path: `${PUBLIC_PREFIX}/${filename}` });
+    } catch (e) {
+      try {
+        await fs.unlink(absTemp);
+      } catch {
+        /* ignore */
+      }
+      return NextResponse.json(
+        { ok: false, error: e instanceof Error ? e.message : String(e) },
+        { status: 500 },
+      );
     }
-    return NextResponse.json({ ok: true, path: `${PUBLIC_PREFIX}/${filename}` });
-  } catch (e) {
-    try {
-      await fs.unlink(absTemp);
-    } catch {
-      /* ignore */
-    }
-    return NextResponse.json(
-      { ok: false, error: e instanceof Error ? e.message : String(e) },
-      { status: 500 },
-    );
-  }
+  });
 }
