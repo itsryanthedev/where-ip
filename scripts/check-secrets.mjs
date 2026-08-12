@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const args = new Set(process.argv.slice(2));
 const supportedArgs = new Set(['--history', '--staged']);
@@ -232,6 +232,13 @@ function checkWorkingTree() {
 
   for (const filePath of files) {
     checkPath(filePath, 'tracked');
+
+    // A tracked file may be intentionally deleted in the working tree. Its
+    // historical contents are scanned separately by --history; do not turn a
+    // normal deletion into an I/O failure for the current-tree scan.
+    if (!existsSync(filePath)) {
+      continue;
+    }
 
     const text = decodeTextBuffer(readFileSync(filePath));
     if (text !== null) {

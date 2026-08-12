@@ -28,6 +28,10 @@ import { Sidebar } from "./sidebar";
 import { DeckCanvas, getCanvas } from "./slide-canvas";
 import { Toolbar } from "./toolbar";
 
+const MAX_EXPORT_ENTRIES = 500;
+const MAX_EXPORT_ENTRY_BYTES = 16 * 1024 * 1024;
+const MAX_EXPORT_TOTAL_BYTES = 256 * 1024 * 1024;
+
 export function ScreenshotEditor() {
   const { state, setState, hydrated, savedAt, saveError, reset, resetDevice, undo, redo } = useProject();
   const [activeSlideId, setActiveSlideId] = React.useState<string | null>(null);
@@ -425,12 +429,32 @@ export function ScreenshotEditor() {
       const platform = detectPlatform(state.device);
       const zip = new JSZip();
       const totalUnits = sizes.length * locales.length * currentSlides.length;
+      if (totalUnits > MAX_EXPORT_ENTRIES) {
+        toast.error(`Export is limited to ${MAX_EXPORT_ENTRIES} images at a time`);
+        return;
+      }
       let unit = 0;
       let okCount = 0;
       let failed = 0;
+      let totalBytes = 0;
+      let archiveLimitReached = false;
       const errors: string[] = [];
+      const safeDevice = safeArchiveComponent(state.device);
+      const safePlatform = safeArchiveComponent(platform);
+      const safeLocales = locales.map(safeArchiveComponent);
+      const safeLayouts = currentSlides.map((slide) => safeArchiveComponent(slide.layout));
+      if (
+        !safeDevice ||
+        !safePlatform ||
+        safeLocales.some((locale) => !locale) ||
+        safeLayouts.some((layout) => !layout)
+      ) {
+        throw new Error("Invalid archive path component");
+      }
 
-      for (const locale of locales) {
+      exportLoops: for (let localeIndex = 0; localeIndex < locales.length; localeIndex += 1) {
+        const locale = locales[localeIndex];
+        const safeLocale = safeLocales[localeIndex]!;
         setExportLocaleOverride(locale);
         await waitForPaint();
 
@@ -450,9 +474,23 @@ export function ScreenshotEditor() {
             try {
               const dataUrl = await captureSlide(el, cW, cH, size.w, size.h);
               const base64 = dataUrl.split(",")[1] || "";
-              const filename = `${String(i + 1).padStart(2, "0")}-${slide.layout}.png`;
-              const path = `${platform}/${state.device}/${size.w}x${size.h}/${locale}/${filename}`;
+              const estimatedBytes = Math.ceil((base64.length * 3) / 4);
+              if (estimatedBytes > MAX_EXPORT_ENTRY_BYTES) {
+                errors.push(`${locale} ${size.w}×${size.h} screen ${i + 1}: Rendered image exceeds the maximum archive entry size`);
+                failed += 1;
+                continue;
+              }
+              if (totalBytes + estimatedBytes > MAX_EXPORT_TOTAL_BYTES) {
+                errors.push(`${locale} ${size.w}×${size.h} screen ${i + 1}: Export exceeds the maximum archive size`);
+                failed += 1;
+                archiveLimitReached = true;
+                break exportLoops;
+              }
+              const safeLayout = safeLayouts[i]!;
+              const filename = `${String(i + 1).padStart(2, "0")}-${safeLayout}.png`;
+              const path = `${safePlatform}/${safeDevice}/${size.w}x${size.h}/${safeLocale}/${filename}`;
               zip.file(path, base64, { base64: true });
+              totalBytes += estimatedBytes;
               okCount += 1;
             } catch (e) {
               failed += 1;
@@ -462,6 +500,10 @@ export function ScreenshotEditor() {
             }
           }
         }
+      }
+
+      if (archiveLimitReached) {
+        failed += totalUnits - unit;
       }
 
       if (okCount > 0) {
@@ -727,6 +769,10 @@ function slugify(s: string) {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "") || "screenshots"
   );
+}
+
+function safeArchiveComponent(value: string): string | null {
+  return /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/.test(value) ? value : null;
 }
 
 function slideNeedsScreenshot(device: Device, slide: Slide) {

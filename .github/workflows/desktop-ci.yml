@@ -6,6 +6,10 @@ on:
     paths:
       - 'electron/**'
       - 'scripts/package-desktop.mjs'
+      - 'scripts/package-security.cjs'
+      - 'electron-forge.config.cjs'
+      - 'scripts/package-security.test.cjs'
+      - 'store-screenshots/**'
       - 'src/**'
       - 'public/**'
       - 'app.config.ts'
@@ -17,6 +21,10 @@ on:
     paths:
       - 'electron/**'
       - 'scripts/package-desktop.mjs'
+      - 'scripts/package-security.cjs'
+      - 'electron-forge.config.cjs'
+      - 'scripts/package-security.test.cjs'
+      - 'store-screenshots/**'
       - 'src/**'
       - 'public/**'
       - 'app.config.ts'
@@ -66,7 +74,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run desktop allowlist tests
-        run: pnpm run electron:test
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run electron:test
+          node --test scripts/package-security.test.cjs
 
       - name: Export desktop web bundle
         run: pnpm run export:desktop

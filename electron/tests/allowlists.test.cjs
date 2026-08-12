@@ -9,7 +9,12 @@ const { pathToFileURL } = require('node:url');
 const { resolveAllowedLink, isDesktopLinkId } = require('../shared/links.cjs');
 const { isProviderId, PROVIDERS } = require('../shared/providers.cjs');
 const { resolveProtocolPath } = require('../shared/protocol.cjs');
-const { parseProviderResponse } = require('../shared/provider-lookup.cjs');
+const {
+  inferIpVersion,
+  isUsablePublicIp,
+  lookupPublicIp,
+  parseProviderResponse,
+} = require('../shared/provider-lookup.cjs');
 const {
   assertTrustedIpcSender,
   isTrustedIpcSender,
@@ -87,15 +92,28 @@ describe('custom protocol path resolution', () => {
 });
 
 describe('provider response parsing in the shell', () => {
+  it('rejects reserved IPv4 ranges and invalid IPv6 values', () => {
+    assert.equal(isUsablePublicIp('100.64.0.1'), false);
+    assert.equal(isUsablePublicIp('192.0.2.1'), false);
+    assert.equal(isUsablePublicIp('203.0.113.10'), false);
+    assert.equal(isUsablePublicIp('192.0.0.1'), false);
+    assert.equal(isUsablePublicIp('192.0.0.9'), true);
+    assert.equal(isUsablePublicIp('192.0.0.10'), true);
+    assert.equal(isUsablePublicIp('2001:2::1'), false);
+    assert.equal(isUsablePublicIp('2001:db8::1'), false);
+    assert.equal(isUsablePublicIp('2001:4860:4860::8888'), true);
+    assert.equal(inferIpVersion('2001:4860:4860::8888'), 6);
+  });
+
   it('parses a minimal ipinfo payload', () => {
     const result = parseProviderResponse('ipinfo', {
-      ip: '203.0.113.10',
+      ip: '8.8.8.8',
       country: 'US',
       city: 'Example',
       org: 'AS64500 Example Org',
     }, '2026-07-24T00:00:00.000Z');
 
-    assert.equal(result.ip, '203.0.113.10');
+    assert.equal(result.ip, '8.8.8.8');
     assert.equal(result.providerId, 'ipinfo');
     assert.equal(result.countryCode, 'US');
     assert.equal(result.asn, 'AS64500');
@@ -106,6 +124,24 @@ describe('provider response parsing in the shell', () => {
       () => parseProviderResponse('not-a-provider', { ip: '1.1.1.1' }),
       /Unknown provider/,
     );
+  });
+
+  it('bounds chunked provider bodies before parsing', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async () =>
+      new Response('x'.repeat(64 * 1024 + 1), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+
+    try {
+      await assert.rejects(
+        lookupPublicIp('ipinfo'),
+        /oversized response/,
+      );
+    } finally {
+      global.fetch = originalFetch;
+    }
   });
 });
 

@@ -9,18 +9,22 @@ const {
 } = require('../shared/providers.cjs');
 
 /**
- * Minimal public-IP validation mirrored from src/utils/ip.ts (IPv4 focus for
- * allowlisted provider payloads). Full parity is enforced via the shared
- * parser rules below.
+ * Keep the shell-side validator behaviorally aligned with src/utils/ip.ts.
+ * Provider responses are untrusted input even though their endpoints are
+ * allowlisted.
  *
  * @param {string} ip
  * @returns {4 | 6 | null}
  */
 function inferIpVersion(ip) {
-  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ip)) {
+  if (typeof ip !== 'string') {
+    return null;
+  }
+
+  if (isValidIpv4(ip)) {
     return 4;
   }
-  if (ip.includes(':')) {
+  if (isValidIpv6(ip)) {
     return 6;
   }
   return null;
@@ -31,40 +35,143 @@ function inferIpVersion(ip) {
  */
 function isUsablePublicIp(ip) {
   const version = inferIpVersion(ip);
-  if (version === null) {
-    return false;
-  }
-  if (version === 6) {
-    const normalized = ip.toLowerCase();
-    return (
-      !normalized.startsWith('::1') &&
-      !normalized.startsWith('fc') &&
-      !normalized.startsWith('fd') &&
-      !normalized.startsWith('fe80')
+  if (version === 4) {
+    const address = ipv4ToNumber(ip);
+    if (
+      PUBLIC_IPV4_CARVE_OUTS.some(([network, prefixLength]) =>
+        isIpv4InCidr(address, network, prefixLength),
+      )
+    ) {
+      return true;
+    }
+    return !NON_PUBLIC_IPV4_RANGES.some(([network, prefixLength]) =>
+      isIpv4InCidr(address, network, prefixLength),
     );
   }
 
-  const parts = ip.split('.').map(Number);
-  if (parts.length !== 4 || parts.some((part) => part < 0 || part > 255)) {
+  if (version === 6) {
+    const address = ipv6ToBigInt(ip);
+    if (!isIpv6InCidr(address, ipv6ToBigInt('2000::'), 3)) {
+      return false;
+    }
+
+    if (
+      PUBLIC_IPV6_CARVE_OUTS.some(([network, prefixLength]) =>
+        isIpv6InCidr(address, ipv6ToBigInt(network), prefixLength),
+      )
+    ) {
+      return true;
+    }
+
+    return !NON_PUBLIC_IPV6_RANGES.some(([network, prefixLength]) =>
+      isIpv6InCidr(address, ipv6ToBigInt(network), prefixLength),
+    );
+  }
+
+  return false;
+}
+
+const NON_PUBLIC_IPV4_RANGES = [
+  ['0.0.0.0', 8],
+  ['10.0.0.0', 8],
+  ['100.64.0.0', 10],
+  ['127.0.0.0', 8],
+  ['169.254.0.0', 16],
+  ['172.16.0.0', 12],
+  ['192.0.0.0', 24],
+  ['192.0.2.0', 24],
+  ['192.88.99.0', 24],
+  ['192.168.0.0', 16],
+  ['198.18.0.0', 15],
+  ['198.51.100.0', 24],
+  ['203.0.113.0', 24],
+  ['224.0.0.0', 3],
+];
+
+// 192.0.0.0/24 is special-use; keep IANA globally reachable AS112 exceptions.
+const PUBLIC_IPV4_CARVE_OUTS = [
+  ['192.0.0.9', 32],
+  ['192.0.0.10', 32],
+];
+
+const PUBLIC_IPV6_CARVE_OUTS = [
+  ['2001:1::1', 128],
+  ['2001:1::2', 128],
+  ['2001:1::3', 128],
+  ['2001:3::', 32],
+  ['2001:4:112::', 48],
+];
+
+const NON_PUBLIC_IPV6_RANGES = [
+  ['2001::', 23],
+  ['2001:db8::', 32],
+  ['3fff::', 20],
+];
+
+function isValidIpv4(ip) {
+  const parts = ip.split('.');
+  return (
+    parts.length === 4 &&
+    parts.every((part) => {
+      if (!/^\d{1,3}$/.test(part)) return false;
+      const value = Number(part);
+      return value >= 0 && value <= 255 && String(value) === part;
+    })
+  );
+}
+
+function isValidIpv6(ip) {
+  if (!ip.includes(':') || ip.includes('.') || !/^[0-9a-fA-F:]+$/.test(ip)) {
     return false;
   }
-  const [a, b] = parts;
-  if (a === 10 || a === 127 || a === 0) {
-    return false;
+
+  const doubleColonCount = (ip.match(/::/g) || []).length;
+  if (doubleColonCount > 1) return false;
+
+  const validSection = (section) => /^[0-9a-fA-F]{1,4}$/.test(section);
+  if (doubleColonCount === 0) {
+    const sections = ip.split(':');
+    return sections.length === 8 && sections.every(validSection);
   }
-  if (a === 169 && b === 254) {
-    return false;
-  }
-  if (a === 172 && b >= 16 && b <= 31) {
-    return false;
-  }
-  if (a === 192 && b === 168) {
-    return false;
-  }
-  if (a >= 224) {
-    return false;
-  }
-  return true;
+
+  const [left = '', right = ''] = ip.split('::');
+  const leftSections = left ? left.split(':') : [];
+  const rightSections = right ? right.split(':') : [];
+  return (
+    leftSections.every(validSection) &&
+    rightSections.every(validSection) &&
+    leftSections.length + rightSections.length < 8
+  );
+}
+
+function ipv4ToNumber(ip) {
+  return ip.split('.').map(Number).reduce((value, octet) => value * 256 + octet, 0);
+}
+
+function isIpv4InCidr(address, network, prefixLength) {
+  const blockSize = 2 ** (32 - prefixLength);
+  return Math.floor(address / blockSize) === Math.floor(ipv4ToNumber(network) / blockSize);
+}
+
+function ipv6ToBigInt(ip) {
+  const [left = '', right = ''] = ip.split('::');
+  const leftSections = left ? left.split(':') : [];
+  const rightSections = right ? right.split(':') : [];
+  const missingSections = 8 - leftSections.length - rightSections.length;
+  const sections = [
+    ...leftSections,
+    ...Array.from({ length: missingSections }, () => '0'),
+    ...rightSections,
+  ];
+  return sections.reduce(
+    (value, section) => (value << 16n) | BigInt(Number.parseInt(section, 16)),
+    0n,
+  );
+}
+
+function isIpv6InCidr(address, network, prefixLength) {
+  const shift = BigInt(128 - prefixLength);
+  return address >> shift === network >> shift;
 }
 
 /**
@@ -299,10 +406,7 @@ async function lookupPublicIp(providerId) {
       throw new Error(`${provider.name} returned an oversized response`);
     }
 
-    const text = await response.text();
-    if (text.length > MAX_PROVIDER_RESPONSE_BYTES) {
-      throw new Error(`${provider.name} returned an oversized response`);
-    }
+    const text = await readBoundedResponseText(response, provider.name);
 
     let payload;
     try {
@@ -317,9 +421,36 @@ async function lookupPublicIp(providerId) {
   }
 }
 
+async function readBoundedResponseText(response, providerName) {
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    throw new Error(`${providerName} response body could not be bounded`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let bytesRead = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytesRead += value.byteLength;
+      if (bytesRead > MAX_PROVIDER_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new Error(`${providerName} returned an oversized response`);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 module.exports = {
   lookupPublicIp,
   parseProviderResponse,
   isUsablePublicIp,
   inferIpVersion,
+  readBoundedResponseText,
 };

@@ -1,9 +1,17 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PROJECT_SCHEMA_VERSION, STORAGE_KEY } from "./constants";
+import { STORAGE_KEY } from "./constants";
 import { DEFAULT_PROJECT } from "./defaults";
-import { coerceLocalized } from "./locale";
-import type { Device, ElementTransform, ProjectState, Slide, TextElement } from "./types";
+import {
+  MAX_PROJECT_BODY_BYTES,
+  sanitizeProjectState,
+} from "./project-sanitizer";
+import {
+  EDITOR_REQUEST_TOKEN_HEADER,
+  getProjectRequestToken,
+  setProjectRequestToken,
+} from "./request-token";
+import type { Device, ProjectState } from "./types";
 
 const HISTORY_LIMIT = 50;
 // Coalesce rapid edits (typing, slider drags) into a single undo step.
@@ -11,126 +19,17 @@ const COALESCE_MS = 500;
 // Debounce file/localStorage writes — frequent enough to feel instant, infrequent enough not to thrash disk.
 const SAVE_DEBOUNCE_MS = 600;
 
-function cleanTransform(value: unknown): ElementTransform | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const raw = value as Partial<ElementTransform>;
-  const required = [raw.x, raw.y, raw.width, raw.height];
-  if (!required.every((n) => typeof n === "number" && Number.isFinite(n))) return undefined;
-  return {
-    x: raw.x!,
-    y: raw.y!,
-    width: Math.max(1, raw.width!),
-    height: Math.max(1, raw.height!),
-    ...(typeof raw.rotation === "number" && Number.isFinite(raw.rotation)
-      ? { rotation: raw.rotation }
-      : {}),
-    ...(typeof raw.zIndex === "number" && Number.isFinite(raw.zIndex)
-      ? { zIndex: raw.zIndex }
-      : {}),
-  };
-}
-
-function cleanTextElement(value: unknown): TextElement | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const raw = value as Partial<TextElement>;
-  if (typeof raw.id !== "string" || !raw.id.trim()) return undefined;
-  const transform = cleanTransform(raw.transform);
-  if (!transform) return undefined;
-  return {
-    id: raw.id,
-    text: coerceLocalized(raw.text as unknown),
-    transform,
-    ...(typeof raw.fontSize === "number" && Number.isFinite(raw.fontSize)
-      ? { fontSize: raw.fontSize }
-      : {}),
-    ...(typeof raw.fontWeight === "number" && Number.isFinite(raw.fontWeight)
-      ? { fontWeight: raw.fontWeight }
-      : {}),
-    ...(typeof raw.color === "string" ? { color: raw.color } : {}),
-    ...(raw.align === "left" || raw.align === "center" || raw.align === "right"
-      ? { align: raw.align }
-      : {}),
-  };
-}
-
-// Migrate older projects into the current schema while keeping legacy decks
-// visually stable until they explicitly opt into connected canvas.
-function isSlideLike(value: unknown): value is Slide {
-  return !!value && typeof value === "object" && typeof (value as Slide).id === "string";
-}
-
-function migrateSlide(slide: Slide): Slide {
-  const transforms = slide.transforms
-    ? Object.fromEntries(
-        Object.entries(slide.transforms)
-          .map(([id, transform]) => [id, cleanTransform(transform)])
-          .filter((entry): entry is [string, ElementTransform] => !!entry[1]),
-      )
-    : undefined;
-  const textElements = Array.isArray(slide.textElements)
-    ? slide.textElements.map(cleanTextElement).filter((t): t is TextElement => !!t)
-    : undefined;
-
-  return {
-    ...slide,
-    label: coerceLocalized(slide.label as unknown),
-    headline: coerceLocalized(slide.headline as unknown),
-    ...(transforms && Object.keys(transforms).length > 0 ? { transforms } : { transforms: undefined }),
-    ...(textElements && textElements.length > 0 ? { textElements } : { textElements: undefined }),
-  };
-}
-
-function mergeWithDefaults(parsed: Partial<ProjectState>): ProjectState {
-  const connectedCanvas =
-    typeof parsed.connectedCanvas === "boolean"
-      ? parsed.connectedCanvas
-      : false;
-  const themeId =
-    typeof parsed.themeId === "string" && parsed.themeId.trim()
-      ? parsed.themeId
-      : DEFAULT_PROJECT.themeId;
-  const slidesByDevice = parsed.slidesByDevice
-    ? Object.fromEntries(
-        Object.entries(parsed.slidesByDevice).map(([device, slides]) => [
-          device,
-          Array.isArray(slides)
-            ? slides.filter(isSlideLike).map((slide) => migrateSlide(slide))
-            : [],
-        ]),
-      )
-    : {};
-  const locales = Array.isArray(parsed.locales)
-    ? parsed.locales.filter((locale): locale is string => typeof locale === "string" && !!locale.trim())
-    : undefined;
-  const merged: ProjectState = {
-    ...DEFAULT_PROJECT,
-    ...parsed,
-    schemaVersion: PROJECT_SCHEMA_VERSION,
-    themeId,
-    connectedCanvas,
-    ...(locales ? { locales } : {}),
-    slidesByDevice: {
-      ...DEFAULT_PROJECT.slidesByDevice,
-      ...slidesByDevice,
-    } as ProjectState["slidesByDevice"],
-  };
-  // Clamp the active locale into the project's locale list so a stale
-  // `locale` (e.g. from a project that dropped languages) doesn't show blank.
-  if (!merged.locales || merged.locales.length === 0) {
-    merged.locales = [...DEFAULT_PROJECT.locales];
-  }
-  if (typeof merged.locale !== "string" || !merged.locales.includes(merged.locale)) {
-    merged.locale = merged.locales[0];
-  }
-  return merged;
-}
-
 function loadFromLocalStorage(): ProjectState | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return mergeWithDefaults(JSON.parse(raw) as Partial<ProjectState>);
+    if (
+      !raw ||
+      new TextEncoder().encode(raw).byteLength > MAX_PROJECT_BODY_BYTES
+    ) {
+      return null;
+    }
+    return sanitizeProjectState(JSON.parse(raw) as Partial<ProjectState>);
   } catch {
     return null;
   }
@@ -143,10 +42,14 @@ async function loadFromFile(): Promise<
   try {
     const resp = await fetch("/api/project", { cache: "no-store" });
     if (!resp.ok) return { ok: false, error: `HTTP ${resp.status}` };
-    const json = (await resp.json()) as { ok: boolean; state: Partial<ProjectState> | null };
+    const json = (await resp.json()) as { ok: boolean; state: unknown; csrfToken?: unknown };
     if (!json.ok) return { ok: false, error: "Project response was not ok" };
+    setProjectRequestToken(json.csrfToken);
+    if (!getProjectRequestToken()) {
+      return { ok: false, error: "Project response did not include a valid editor token" };
+    }
     if (!json.state) return { ok: true, state: null };
-    return { ok: true, state: mergeWithDefaults(json.state) };
+    return { ok: true, state: sanitizeProjectState(json.state) };
   } catch {
     return { ok: false, error: "Project file could not be loaded" };
   }
@@ -166,11 +69,34 @@ function saveToLocalStorage(state: ProjectState): { ok: true } | { ok: false; er
 async function saveToFile(state: ProjectState): Promise<{ ok: true } | { ok: false; error: string }> {
   if (typeof window === "undefined") return { ok: true };
   try {
-    const resp = await fetch("/api/project", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(state),
-    });
+    const token = getProjectRequestToken();
+    if (!token) {
+      return { ok: false, error: "Editor session token is not available" };
+    }
+    const body = JSON.stringify(state);
+    const post = (requestToken: string) =>
+      fetch("/api/project", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          [EDITOR_REQUEST_TOKEN_HEADER]: requestToken,
+        },
+        body,
+      });
+
+    let resp = await post(token);
+    // Local dev server restarts mint a new ephemeral token; refresh once.
+    if (resp.status === 401 || resp.status === 403) {
+      const refreshed = await loadFromFile();
+      if (!refreshed.ok) {
+        return { ok: false, error: refreshed.error };
+      }
+      const nextToken = getProjectRequestToken();
+      if (!nextToken) {
+        return { ok: false, error: "Editor session token expired" };
+      }
+      resp = await post(nextToken);
+    }
     if (!resp.ok) {
       return { ok: false, error: `HTTP ${resp.status}` };
     }

@@ -7,12 +7,27 @@ function response(
   status: number,
   payload: unknown,
   headers: Record<string, string> = {},
-): Pick<Response, 'ok' | 'status' | 'headers' | 'json'> {
+): Pick<Response, 'ok' | 'status' | 'headers' | 'body'> {
+  return streamedResponse(status, [JSON.stringify(payload)], headers);
+}
+
+function streamedResponse(
+  status: number,
+  chunks: string[],
+  headers: Record<string, string> = {},
+): Pick<Response, 'ok' | 'status' | 'headers' | 'body'> {
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const encoder = new TextEncoder();
+      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+      controller.close();
+    },
+  });
   return {
     ok: status >= 200 && status < 300,
     status,
     headers: new Headers(headers),
-    json: async () => payload,
+    body: body as Response['body'],
   };
 }
 
@@ -38,7 +53,10 @@ describe('provider fallback chain', () => {
     expect(outcome.attemptedProviders).toEqual(['ipwhois']);
     expect(fetchImplementation).toHaveBeenCalledWith(
       'https://ipwho.is/',
-      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal),
+        redirect: 'error',
+      }),
     );
   });
 
@@ -93,12 +111,10 @@ describe('provider fallback chain', () => {
   });
 
   test('falls back before parsing a declared oversized response', async () => {
-    const oversizedJson = jest.fn();
     const fetchImplementation = jest
       .fn()
       .mockResolvedValueOnce({
         ...response(200, {}, { 'content-length': String(64 * 1024 + 1) }),
-        json: oversizedJson,
       })
       .mockResolvedValueOnce(
         response(200, {
@@ -113,7 +129,30 @@ describe('provider fallback chain', () => {
     });
 
     expect(outcome.result.providerId).toBe('freeipapi');
-    expect(oversizedJson).not.toHaveBeenCalled();
+  });
+
+  test('bounds a chunked response before parsing JSON', async () => {
+    const fetchImplementation = jest
+      .fn()
+      .mockResolvedValueOnce(
+        streamedResponse(
+          200,
+          Array.from({ length: 9 }, () => 'x'.repeat(8 * 1024)),
+        ),
+      )
+      .mockResolvedValueOnce(
+        response(200, {
+          ipAddress: '1.1.1.1',
+          countryCode: 'AU',
+        }),
+      );
+
+    const outcome = await lookupPublicIp({
+      preferredProvider: 'ipwhois',
+      fetchImplementation,
+    });
+
+    expect(outcome.result.providerId).toBe('freeipapi');
   });
 
   test('moves a user-selected provider to the front', async () => {

@@ -15,10 +15,14 @@ import type {
   ProviderId,
 } from '@/types/ip';
 
+type FetchResponse = Pick<Response, 'ok' | 'status' | 'headers'> & {
+  body?: Response['body'];
+};
+
 type FetchImplementation = (
   input: string,
   init?: RequestInit,
-) => Promise<Pick<Response, 'ok' | 'status' | 'headers' | 'json'>>;
+) => Promise<FetchResponse>;
 
 type LookupOptions = {
   preferredProvider: ProviderId;
@@ -100,6 +104,7 @@ export async function lookupPublicIp({
           Accept: 'application/json',
         },
         signal: controller.signal,
+        redirect: 'error',
       });
 
       if (!response.ok) {
@@ -115,7 +120,9 @@ export async function lookupPublicIp({
         continue;
       }
 
-      const payload = await response.json();
+      const payload = JSON.parse(
+        await readBoundedResponseText(response),
+      ) as unknown;
       const result = parseProviderResponse(
         provider.id,
         payload,
@@ -171,4 +178,35 @@ function declaredResponseIsTooLarge(headers: Headers): boolean {
     Number.isFinite(contentLength) &&
     contentLength > MAX_PROVIDER_RESPONSE_BYTES
   );
+}
+
+async function readBoundedResponseText(response: FetchResponse): Promise<string> {
+  const body = response.body;
+  if (!body || typeof body.getReader !== 'function') {
+    throw new Error('Provider response body could not be bounded');
+  }
+
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let bytesRead = 0;
+  let text = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      bytesRead += value.byteLength;
+      if (bytesRead > MAX_PROVIDER_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new Error('Provider response exceeded the maximum size');
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
 }

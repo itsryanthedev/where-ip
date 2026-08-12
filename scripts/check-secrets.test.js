@@ -109,4 +109,25 @@ describe('secret hygiene scanner', () => {
 
     expect(runScanner(fixtureDirectory).status).toBe(0);
   });
+
+  test('allows a tracked file to be deleted from the working tree', () => {
+    const fixturePath = join(fixtureDirectory, 'deleted.txt');
+    const trackedSecretPath = join(fixtureDirectory, 'tracked-secret.json');
+    writeFileSync(fixturePath, 'safe fixture\n');
+    writeFileSync(
+      trackedSecretPath,
+      JSON.stringify({ [credentialKey]: fakeMarker }),
+    );
+    runGit(fixtureDirectory, 'add', 'deleted.txt');
+    runGit(fixtureDirectory, 'add', 'tracked-secret.json');
+    runGit(fixtureDirectory, 'commit', '--quiet', '-m', 'add tracked fixtures');
+    rmSync(fixturePath);
+
+    const result = runScanner(fixtureDirectory);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('embedded-credential:tracked-secret.json');
+    expect(result.stderr).not.toContain('embedded-credential:deleted.txt');
+    expect(result.stderr).not.toContain(fakeMarker);
+  });
 });

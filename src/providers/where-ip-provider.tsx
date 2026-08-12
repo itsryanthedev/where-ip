@@ -85,11 +85,13 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
   const providerCooldownsRef = useRef<ProviderCooldowns>({});
   const preferredProviderRef = useRef<ProviderId>(DEFAULT_PROVIDER_ID);
   const acknowledgedAtRef = useRef<string | null>(null);
+  const readyRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
+      readyRef.current = false;
       providerSwitchTokenRef.current += 1;
     };
   }, []);
@@ -99,7 +101,11 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
     providerOverride?: ProviderId,
     options?: { skipAgeCheck?: boolean },
   ): Promise<boolean> => {
-    if (requestInFlight.current) {
+    if (
+      !readyRef.current ||
+      !acknowledgedAtRef.current ||
+      requestInFlight.current
+    ) {
       return false;
     }
 
@@ -205,6 +211,7 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         setStatus(age <= CACHE_FRESHNESS_MS ? 'success' : 'stale');
       }
 
+      readyRef.current = true;
       setIsReady(true);
 
       if (persisted.settings.acknowledgedAt) {
@@ -246,6 +253,12 @@ export function WhereIpProvider({ children }: PropsWithChildren) {
         acknowledgedAt: acknowledgedAtRef.current,
         preferredProvider: providerId,
       }).catch(() => undefined);
+
+      if (!readyRef.current || !acknowledgedAtRef.current) {
+        setPendingProviderRefresh(null);
+        setRefreshingProvider(null);
+        return;
+      }
 
       let waitMs = getCooldownRemainingMs(resultRef.current?.fetchedAt);
       while (waitMs > 0) {
